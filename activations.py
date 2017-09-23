@@ -21,6 +21,3 @@ def relu(Z):
 # tanh activation function
 def tanh(Z):
     return (np.exp(Z)-np.exp(-Z))/(np.exp(Z)+np.exp(-Z));
-
-def foo(f):
-    print(f);
