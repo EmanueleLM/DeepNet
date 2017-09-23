@@ -41,7 +41,7 @@ class DeepNet(object):
         self.explainNet();
             
     # function that explains the net: this means that it describes the network
-    # int terms of input, layers and activation functions
+    # in terms of input, layers and activation functions
     def explainNet(self):
         print("\nThe network has ", self.W[0].shape[0], " input(s) and ", len(self.W), " layers.");
         for l in range(len(self.W)):
@@ -53,10 +53,21 @@ class DeepNet(object):
     #   the layer where we want the activation to happen
     # returns
     #   the matrix of the activations (even one element for example in single output nn)
-    def linearActivation(self, X, layer):
+    def activation(self, X, layer):
         Z = np.dot(self.W[layer].T,X)+self.Bias[layer]; # activate (linearly) the input
         return activations_dict[self.activations[layer]](Z); # activate the actiovation function of each layer using the vocabulary defined at the beginning            
-
+    
+    # function that activates a all the layers in the net and returns the desired output
+    # takes as input
+    #   the input X as a vector
+    # returns
+    #   the output vector (even one element for example in single output nn)    
+    def netActivation(self, X):
+        res = X;
+        for l in range(len(self.W)):
+            res = self.activation(res, l);
+        return res; 
+    
 """ Test part """
 
 net = DeepNet(2, np.array([[3, "relu"],[5, "relu"], [7, "relu"], [1, "sigmoid"]]));
