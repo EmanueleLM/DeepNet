@@ -12,6 +12,7 @@ The starting point is just a feed forward neural net where we add much more laye
 import numpy as np
 import activations as act
 import loss as ls
+import derivatives as de
 import pylab as pl
 import time
 
@@ -28,7 +29,14 @@ activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh};
 #   define a function in loss.py (imported let's say as ls), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": ls.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "Llog": ls.lossLog};
+loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntropy};
+
+# the same method is employed for the choice of the derivatives function
+# Use this struct in this way: 
+#   define a function in derivatives.py (imported let's say as de), say foo(input)
+#   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
+#   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
@@ -77,6 +85,7 @@ class DeepNet(object):
         for l in range(len(self.W)):
             res = self.activation(res, l);
         return res; 
+    
     # function that calculates the loss for a given input, output and a loss function
     # takes as input:
     #   the prediction Y (can be calculated as self.netActivation(input))
@@ -85,6 +94,12 @@ class DeepNet(object):
     #   the loss with the formula specified in self.loss, using the dictionary structure loss_dict to invoke the correct function (see above for more info)
     def calculateLoss(self, Y, T):
         return loss_dict[self.loss](Y, T)
+    
+    # function that performs a step of back propagation of the weights update from the output
+    #   (i.e. the loss error) to the varoius weights of the net
+    # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
+    def backpropagation(self):   
+        return;
     
     
 """ Test part """
