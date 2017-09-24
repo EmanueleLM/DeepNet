@@ -19,10 +19,10 @@ def lossL2(Y, T):
 def lossL1(Y, T):
     return np.abs((Y-T));
 
-# loss function for the logistic regression
+# loss function known as Cross Entropy
 # Y is the value predicted by our algorithm
 # T is the real value (we are in a supervised scenario)
-def lossLog(T, Y):
+def lossCrossEntropy(T, Y):
     if Y==T: # this if else is to avoid numerical problems with numpy.log2(0)
         return 0;
     elif (Y==1 and T==0) or (Y==0 and T==1):
