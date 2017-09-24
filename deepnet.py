@@ -28,7 +28,7 @@ activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh};
 # Use this struct in this way: 
 #   define a function in loss.py (imported let's say as ls), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": ls.function_name
-#   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
+#   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
 loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntropy};
 
 # the same method is employed for the choice of the derivatives function
