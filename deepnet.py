@@ -36,7 +36,7 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy};
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "sigmoid": de.dSigmoid, "tanh": de.dTanh};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
@@ -64,7 +64,8 @@ class DeepNet(object):
         print("\nThe network has ", self.W[0].shape[0], " input(s) and ", len(self.W), " layers.");
         for l in range(len(self.W)):
             print("The layer number ", l+1, " has ", self.W[l].shape[0], " input(s) per neuron, ", self.W[l].shape[1], " neuron(s) and ", self.activations[l], " as activation function.");
-            print("The loss function selected is ", self.loss);
+        print("The loss function selected is ", self.loss);
+        
     # function that activates a single, given layer and, based on its activation function, returns the desired output
     # takes as input
     #   the input X as a vector
@@ -74,6 +75,13 @@ class DeepNet(object):
     def activation(self, X, layer):
         Z = np.dot(self.W[layer].T,X)+self.Bias[layer]; # activate (linearly) the input
         return activations_dict[self.activations[layer]](Z); # activate the actiovation function of each layer using the vocabulary defined at the beginning            
+    
+    # perform activation truncated to a given layer
+    def partialActivation(self, X, layer):
+        I = X;
+        for l in range(layer):
+            I = self.activation(I, l);
+        return I;
     
     # function that activates sequentially all the layers in the net and returns the desired output (a.k.a. "forward")
     # takes as input
@@ -98,10 +106,20 @@ class DeepNet(object):
     # function that performs a step of back propagation of the weights update from the output
     #   (i.e. the loss error) to the varoius weights of the net
     # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
-    def backpropagation(self):   
+    def backpropagation(self, X, T):  
+        y_hat = self.netActivation(X); # prediction of the network
+        dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
+        partial_derivatives = list(derivatives_dict[self.activations[i]](self.partialActivation(X, i)) for i in range(self.activations.shape[0])); # partial derivatives of the net 
+        print(partial_derivatives);
+        I = X; # the input of backpropagation is the output of forwarding step
+        for l in range(self.activations.shape[0]):
+            
+            #I = np.dot(self.W[l], derivatives_dict[self.activations[l]](I));
+            
+            print("performing back with ", l );
         return;
     
     
 """ Test part """
 
-net = DeepNet(2, np.array([[3, "relu"],[5, "relu"], [7, "relu"], [1, "sigmoid"]]), "L2");
+net = DeepNet(2, np.array([[3, "relu"],[5, "relu"], [7, "relu"], [1, "sigmoid"]]), "CrossEntropy");
