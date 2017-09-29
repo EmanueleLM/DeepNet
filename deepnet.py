@@ -77,9 +77,11 @@ class DeepNet(object):
         return activations_dict[self.activations[layer]](Z); # activate the actiovation function of each layer using the vocabulary defined at the beginning            
     
     # perform activation truncated to a given layer
+    # please note that for a L layers nn, we will have L activations Z(1), .., Z(4)
+    #   whose dimension is equal to [m,1], where m is the number of neurons the layer ends with 
     def partialActivation(self, X, layer):
         I = X;
-        for l in range(layer):
+        for l in range(layer+1):
             I = self.activation(I, l);
         return I;
     
@@ -109,11 +111,24 @@ class DeepNet(object):
     def backpropagation(self, X, T):  
         y_hat = self.netActivation(X); # prediction of the network
         dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
+        # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
+        # we get something like partial_activation = {df_last(Z(last))/dZ(last), .., x}
         partial_derivatives = list(derivatives_dict[self.activations[i]](self.partialActivation(X, i)) for i in range(self.activations.shape[0])); # partial derivatives of the net 
-        print(partial_derivatives);
-        I = X; # the input of backpropagation is the output of forwarding step
-        for l in range(self.activations.shape[0]):
-            
+        partial_derivatives = partial_derivatives[::-1]; # reverse the list (we will use the net in a reverse fashion)
+        partial_derivatives.append(X); # append the last derivative which is X (dWX/dW = X)
+        # calculate the partial activation of each function, and reverse the list
+        # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
+        partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
+        dW = list(); # list of deltas that are used to calculate weights' update
+        #print("\nPartial activations' functions: \n", partial_activations);
+        #print("\nPartial derivatives' functions: \n", partial_derivatives);
+        for l in range(self.activations.shape[0])[::-1]: # iterate from the end to the beginning
+            print(l);
+            if l != self.activations.shape[0]-1: # if we are in a layer that is not the final (which will be the majority of the time ;) )
+                T *= np.dot(self.W[l], partial_derivatives[l]);
+            else:
+                T = partial_derivatives[l];
+            dW.append(np.dot(T, partial_activations[l]));
             #I = np.dot(self.W[l], derivatives_dict[self.activations[l]](I));
             
             print("performing back with ", l );
