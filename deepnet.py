@@ -13,6 +13,7 @@ import numpy as np
 import activations as act
 import loss as ls
 import derivatives as de
+import weights as we
 import pylab as pl
 import time
 
@@ -38,6 +39,13 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
 derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "sigmoid": de.dSigmoid, "tanh": de.dTanh};
 
+# the same method is employed for the choice of the weights' initialization
+# Use this struct in this way: 
+#   define a function in weights.py (imported let's say as we), say foo(input)
+#   put in the vocabulary the record "name_to_invoke_the_function": we.function_name
+#   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
+weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun": we.lecunWeights};
+
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
 #  take as input (the __init__ function):
@@ -53,10 +61,47 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
+        self.learning_rate = 0.5; # default learning rate for each iteration phase
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
         print("\nNetwork created succesfully!")
         self.explainNet();
+        
+    # getter and setters for the net elements
+    # Setters:
+    #   weights
+    def setWeights(self, W):
+        self.W = W;
+    #   bias
+    def setBias(self, B):
+        self.Bias = B;
+    #   activations    
+    def setActivation(self, layer, activation):
+        self.activations[layer] = activation;
+    #   Loss    
+    def setLoss(self, l):
+        self.loss = l;
+    #   learning rate    
+    def setLearningRate(self, a):
+        self.learning_rate = a;
+    # 
+    # Getters:
+    #   weights
+    def getWeights(self):
+        return self.W;
+    #   bias
+    def getBias(self):
+        return self.Bias;
+    #   activations    
+    def getActivation(self, layer):
+        return self.activations[layer];
+    #   Loss    
+    def getLoss(self):
+        return self.loss;
+    #   learning rate    
+    def getLearningRate(self):
+        return self.learning_rate;
+        
             
     # function that explains the net: this means that it describes the network
     # in terms of input, layers and activation functions
@@ -119,22 +164,29 @@ class DeepNet(object):
         # calculate the partial activation of each function, and reverse the list
         # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
         partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
+        partial_activations.append(X);
         dW = list(); # list of deltas that are used to calculate weights' update
-        #print("\nPartial activations' functions: \n", partial_activations);
-        #print("\nPartial derivatives' functions: \n", partial_derivatives);
-        for l in range(self.activations.shape[0])[::-1]: # iterate from the end to the beginning
-            print(l);
-            if l != self.activations.shape[0]-1: # if we are in a layer that is not the final (which will be the majority of the time ;) )
-                T *= np.dot(self.W[l], partial_derivatives[l]);
+        print("\nPartial activations' functions: \n", partial_activations);
+        print("\nPartial derivatives' functions: \n", partial_derivatives);
+        for l in range(len(self.W))[::-1]:
+            chain = 0;
+            # calculate each dW and append it to the list
+            print("calculating dW", l);
+            if l != len(self.W)-1: # all the iterations except the first one 
+                chain = np.dot(self.W[l+1], chain);
+                chain = np.multiply(np.ones(self.W[l].shape).T, partial_derivatives[len(self.W)-l]);
             else:
-                T = partial_derivatives[l];
-            dW.append(np.dot(T, partial_activations[l]));
-            #I = np.dot(self.W[l], derivatives_dict[self.activations[l]](I));
-            
-            print("performing back with ", l );
+                chain = (np.multiply(np.ones(self.W[l].shape), partial_derivatives[0])).T; # calculate the last derivative and multiply it to the 
+            print(chain);
+            dW.append(partial_activations[len(self.W)-l]*chain);
+        dW = dW[::-1];
+        print(dW);
+        # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        for i in range(len(self.W)):
+            self.W[i] -= dY*dW[i].T;        
         return;
     
     
 """ Test part """
 
-net = DeepNet(2, np.array([[3, "relu"],[5, "relu"], [7, "relu"], [1, "sigmoid"]]), "CrossEntropy");
+net = DeepNet(2, np.array([[3, "relu"], [5, "relu"], [7, "relu"], [1, "sigmoid"]]), "CrossEntropy");
