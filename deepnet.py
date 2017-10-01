@@ -14,6 +14,7 @@ import activations as act
 import loss as ls
 import derivatives as de
 import weights as we
+import data as da
 import pylab as pl
 import time
 
@@ -44,7 +45,7 @@ derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntro
 #   define a function in weights.py (imported let's say as we), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": we.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
-weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun": we.lecunWeights};
+weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun": we.lecunWeights, "unitary": we.unitaryWeights};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
@@ -61,7 +62,7 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 0.5; # default learning rate for each iteration phase
+        self.learning_rate = 0.05; # default learning rate for each iteration phase
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
         print("\nNetwork created succesfully!")
@@ -70,8 +71,8 @@ class DeepNet(object):
     # getter and setters for the net elements
     # Setters:
     #   weights
-    def setWeights(self, W):
-        self.W = W;
+    def setWeights(self, W, layer):
+        self.W[layer] = W;
     #   bias
     def setBias(self, B):
         self.Bias = B;
@@ -87,8 +88,8 @@ class DeepNet(object):
     # 
     # Getters:
     #   weights
-    def getWeights(self):
-        return self.W;
+    def getWeights(self, layer):
+        return self.W[layer];
     #   bias
     def getBias(self):
         return self.Bias;
@@ -101,7 +102,6 @@ class DeepNet(object):
     #   learning rate    
     def getLearningRate(self):
         return self.learning_rate;
-        
             
     # function that explains the net: this means that it describes the network
     # in terms of input, layers and activation functions
@@ -154,6 +154,8 @@ class DeepNet(object):
     #   (i.e. the loss error) to the varoius weights of the net
     # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
     def backpropagation(self, X, T):  
+        dW = list(); # list of deltas that are used to calculate weights' update
+        dB = list(); # list of deltas that are used to calculate biases' update
         y_hat = self.netActivation(X); # prediction of the network
         dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
         # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
@@ -165,7 +167,6 @@ class DeepNet(object):
         # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
         partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
         partial_activations.append(X);
-        dW = list(); # list of deltas that are used to calculate weights' update
         print("\nPartial activations' functions: \n", partial_activations);
         print("\nPartial derivatives' functions: \n", partial_derivatives);
         for l in range(len(self.W))[::-1]:
@@ -177,16 +178,26 @@ class DeepNet(object):
                 chain = np.multiply(np.ones(self.W[l].shape).T, partial_derivatives[len(self.W)-l]);
             else:
                 chain = (np.multiply(np.ones(self.W[l].shape), partial_derivatives[0])).T; # calculate the last derivative and multiply it to the 
-            print(chain);
+            #print(chain);
             dW.append(partial_activations[len(self.W)-l]*chain);
+            dB.append(sum(sum(chain))); 
         dW = dW[::-1];
-        print(dW);
+        print("biases", dB);
         # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
         for i in range(len(self.W)):
-            self.W[i] -= dY*dW[i].T;        
+            self.W[i] -= net.learning_rate*dY*dW[i].T;  # add the learning rate for EACH layer   
+            self.Bias[i] -= net.learning_rate*dY*dB[i]; 
         return;
     
     
 """ Test part """
+# create a toy dataset
+X = da.randomData(100,3);
+Y = da.randomBinaryData(100,1);
+X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(2, np.array([[3, "relu"], [5, "relu"], [7, "relu"], [1, "sigmoid"]]), "CrossEntropy");
+net = DeepNet(3, np.array([[3, "relu"], [5, "relu"], [7, "relu"], [1, "sigmoid"]]), "L2");
+for i in range(len(net.W)):
+    net.setWeights(weights_dict['unitary'](net.W[i]), i);
+
+net.backpropagation(np.array([1,1,1]), 0);
