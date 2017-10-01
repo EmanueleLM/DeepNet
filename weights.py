@@ -28,3 +28,7 @@ def uniformWeights(W, lower, upper):
 def lecunWeights(W):
     I = 1/W.shape[0]; # number of incoming conncetions in the neuron
     return np.random.uniform(-I, I, W.shape);
+
+# return a weights' matrix made of all unitary weights (it's for tests purpose)
+def unitaryWeights(W):
+    return np.ones(W.shape);
