@@ -155,7 +155,7 @@ class DeepNet(object):
     # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
     def backpropagation(self, X, T):  
         dW = list(); # list of deltas that are used to calculate weights' update
-        dB = list(); # list of deltas that are used to calculate biases' update
+        dB = np.array([]); # array of deltas that are used to calculate biases' update
         y_hat = self.netActivation(X); # prediction of the network
         dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
         # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
@@ -167,37 +167,40 @@ class DeepNet(object):
         # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
         partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
         partial_activations.append(X);
-        print("\nPartial activations' functions: \n", partial_activations);
-        print("\nPartial derivatives' functions: \n", partial_derivatives);
+        #print("\nPartial activations' functions: \n", partial_activations);
+        #print("\nPartial derivatives' functions: \n", partial_derivatives);
         for l in range(len(self.W))[::-1]:
             chain = 0;
             # calculate each dW and append it to the list
-            print("calculating dW", l);
             if l != len(self.W)-1: # all the iterations except the first one 
                 chain = np.dot(self.W[l+1], chain);
-                chain = np.multiply(np.ones(self.W[l].shape).T, partial_derivatives[len(self.W)-l]);
+                chain = np.multiply(np.ones(self.W[l].shape), partial_derivatives[len(self.W)-l]);
             else:
-                chain = (np.multiply(np.ones(self.W[l].shape), partial_derivatives[0])).T; # calculate the last derivative and multiply it to the 
+                chain = (np.multiply(np.ones(self.W[l].shape), partial_derivatives[0])); # calculate the last derivative and multiply it to the 
             #print(chain);
-            dW.append(partial_activations[len(self.W)-l]*chain);
-            dB.append(sum(sum(chain))); 
+            dW.append(np.multiply( chain, partial_activations[len(self.W)-l]) );
+            dB = np.append(dB, np.sum(chain));
         dW = dW[::-1];
-        print("biases", dB);
+        #print("Weights' updates", dW);
+        #print("biases' updates", dB);
         # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
         for i in range(len(self.W)):
-            self.W[i] -= net.learning_rate*dY*dW[i].T;  # add the learning rate for EACH layer   
-            self.Bias[i] -= net.learning_rate*dY*dB[i]; 
+            #print(i);
+            self.W[i] -= (net.learning_rate*dY*dW[i]);  # add the learning rate for EACH layer   
+            self.Bias[i] -= (net.learning_rate*dY*dB[i]).reshape(1,); 
         return;
     
     
 """ Test part """
 # create a toy dataset
-X = da.randomData(100,3);
-Y = da.randomBinaryData(100,1);
+X = da.randomData(1000,3);
+Y = da.randomData(1000,1);
 X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(3, np.array([[3, "relu"], [5, "relu"], [7, "relu"], [1, "sigmoid"]]), "L2");
+net = DeepNet(3, np.array([[4, "relu"], [6, "relu"], [8, "relu"], [1, "sigmoid"]]), "L2");
 for i in range(len(net.W)):
-    net.setWeights(weights_dict['unitary'](net.W[i]), i);
-
-net.backpropagation(np.array([1,1,1]), 0);
+    net.setWeights(weights_dict['lecun'](net.W[i]), i);
+print("Initial weights ", net.W);
+for n in range(X.shape[1]):
+    net.backpropagation(X[:,n], Y[:,n]);
+print("Final weights ", net.W);
