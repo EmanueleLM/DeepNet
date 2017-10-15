@@ -60,7 +60,7 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 0.08; # default learning rate for each iteration phase
+        self.learning_rate = 0.0045; # default learning rate for each iteration phase
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
         print("\nNetwork created succesfully!")
@@ -178,7 +178,6 @@ class DeepNet(object):
                 chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
                 #print(partial_derivatives[len(self.W)-l].shape)
             else:
-                #print("bisc",l);
                 chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
             dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
             dB = np.append(dB, np.sum(chain));
@@ -241,7 +240,7 @@ class DeepNet(object):
 #Y = da.randomData(1000,10);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2");
+net = DeepNet(64, np.array([[128, "relu"], [10, "sigmoid"]]), "L2");
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
 #print("Initial weights ", net.W);
@@ -257,7 +256,7 @@ for i in range(len(net.W)):
 """ Test the net with a simple digit recognition test """
 import utils_digit_recognition as drec
 
-train_percentage = 90; # percentage of the dataset used for training
+train_percentage = 70; # percentage of the dataset used for training
 
 digits = drec.load_digits(); # import the dataset
 
@@ -275,7 +274,7 @@ test_Y = drec.binarization(test_Y); # ..
 X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
 Y = train_Y;
 
-#X = drec.normalizeData(X);
+X = drec.normalizeData(X);
 #Y = drec.normalizeData(Y.T).T;
 
 X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
@@ -285,7 +284,7 @@ Y_test = test_Y;
 #Y_test = drec.normalizeData(Y_test.T).T;
 
 """ Train with full batch (size of the batch equals to the size of the dataset) """
-epochs = 50;
+epochs = 20;
 for e in range(epochs):
     print((epochs-e)," epochs left");
     for n in range(X.shape[1]):
