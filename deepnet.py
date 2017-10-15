@@ -62,7 +62,7 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 0.05; # default learning rate for each iteration phase
+        self.learning_rate = 0.08; # default learning rate for each iteration phase
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
         print("\nNetwork created succesfully!")
@@ -169,6 +169,52 @@ class DeepNet(object):
         partial_activations.append(X);
         #print("\nPartial activations' functions: \n", partial_activations);
         #print("\nPartial derivatives' functions: \n", partial_derivatives);
+        chain = 0;
+        #for l in range(len(partial_derivatives)):
+        #    print(l, partial_derivatives[l].shape, partial_activations[l].shape);
+        for l in range(len(self.W))[::-1]:
+            if l != len(self.W)-1:
+                #print(l);
+                chain = np.dot( self.W[l+1], chain);
+                #print(chain.shape)
+                chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
+                #print(partial_derivatives[len(self.W)-l].shape)
+            else:
+                #print("bisc",l);
+                chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
+            dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
+            dB = np.append(dB, np.sum(chain));
+        #for dw in range(len(dW)):
+        #    print("p",dW[dw].shape)
+        dW = dW[::-1];
+        #print("Weights' updates", dW);
+        #print("biases' updates", dB);
+        # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        for i in range(len(self.W)):
+            #print(i);
+            self.W[i] -= (net.learning_rate*dW[i]);  # add the learning rate for EACH layer   
+            self.Bias[i] -= (net.learning_rate*dB[i]).reshape(1,); 
+        return;
+        
+    # function that performs a step of batch backpropagation of the weights update from the output
+    #   (i.e. the loss error) to the varoius weights of the net
+    # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
+    def batchBackpropagation(self, X, T, batch_size):  
+        dW = list(); # list of deltas that are used to calculate weights' update
+        dB = np.array([]); # array of deltas that are used to calculate biases' update
+        y_hat = (1/batch_size)*np.sum([self.netActivation(x) for x in X]); # prediction of the network
+        dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
+        # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
+        # we get something like partial_activation = {df_last(Z(last))/dZ(last), .., x}
+        partial_derivatives = list(derivatives_dict[self.activations[i]]((1/batch_size)*sum([self.partialActivation(x, i) for x in X])) for i in range(self.activations.shape[0])); # partial derivatives of the net 
+        partial_derivatives = partial_derivatives[::-1]; # reverse the list (we will use the net in a reverse fashion)
+        partial_derivatives.append(sum([x for x in X])); # append the last derivative which is X (dWX/dW = X)
+        # calculate the partial activation of each function, and reverse the list
+        # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
+        partial_activations = list((1/batch_size)*sum([self.partialActivation(x, i) for x in X]) for i in range(self.activations.shape[0]))[::-1];
+        partial_activations.append(X);
+        #print("\nPartial activations' functions: \n", partial_activations);
+        #print("\nPartial derivatives' functions: \n", partial_derivatives);
         for l in range(len(self.W))[::-1]:
             chain = 0;
             # calculate each dW and append it to the list
@@ -193,14 +239,63 @@ class DeepNet(object):
     
 """ Test part """
 # create a toy dataset
-X = da.randomData(1000,3);
-Y = da.randomData(1000,1);
+X = da.randomData(1000,64);
+Y = da.randomData(1000,10);
 X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(3, np.array([[4, "relu"], [6, "relu"], [8, "relu"], [1, "sigmoid"]]), "L2");
+net = DeepNet(64, np.array([[275, "sigmoid"], [10, "sigmoid"]]), "L2");
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
-print("Initial weights ", net.W);
-for n in range(X.shape[1]):
-    net.backpropagation(X[:,n], Y[:,n]);
-print("Final weights ", net.W);
+#print("Initial weights ", net.W);
+#for n in range(X.shape[1]):
+#    net.backpropagation(X[:,n], Y[:,n]);
+#X = X.reshape(1000,3,1);
+#Y = Y.reshape(1000,1,1);
+#for n in range(0, 1000, 100):
+#    net.batchBackpropagation(X[n:n+100].reshape(3,100,1), Y[n:n+100].reshape(1,100,1), 100);
+#print("Final weights ", net.W);
+    
+    
+""" Test the net with a simple digit recognition test """
+import utils_digit_recognition as drec
+
+train_percentage = 90; # percentage of the dataset used for training
+
+digits = drec.load_digits(); # import the dataset
+
+train_size = len(digits.images); # train size is the number of samples in the digits' dataset
+
+images, targets = drec.unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
+
+train, test = drec.dataSplit(images, train_percentage);# split train adn test
+train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
+
+train_Y = drec.binarization(train_Y); # binarize both the train and test labels
+test_Y = drec.binarization(test_Y); # ..
+
+
+X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
+Y = train_Y;
+
+#X = drec.normalizeData(X);
+#Y = drec.normalizeData(Y.T).T;
+
+X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
+Y_test = test_Y;
+
+#X_test = drec.normalizeData(X_test);
+#Y_test = drec.normalizeData(Y_test.T).T;
+
+""" Train with full batch (size of the batch equals to the size of the dataset) """
+for e in range(150):
+    print((150-e)," epochs left");
+    for n in range(X.shape[1]):
+        net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
+
+""" test how much we are precise in our prediction """
+number_of_errors = 0; # total number of errors on the test set
+test_size = X_test.shape[1];
+for n in range(X_test.shape[1]):
+    if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
+        number_of_errors += 1;
+print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
