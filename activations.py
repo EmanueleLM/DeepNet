@@ -18,6 +18,11 @@ def relu(Z):
     Z[Z<=0] = 0;
     return Z;
 
+# LeakyReLU activation function, where \epsilon is set to 0.01
+def leakyRelu(Z):
+    Z[Z<=0] = 0.01;
+    return Z;
+
 # tanh activation function
 def tanh(Z):
     return (np.exp(Z)-np.exp(-Z))/(np.exp(Z)+np.exp(-Z));
