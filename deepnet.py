@@ -15,8 +15,6 @@ import loss as ls
 import derivatives as de
 import weights as we
 import data as da
-import pylab as pl
-import time
 
 # we use a dictionary to handle each layer's activation function: we will need just to know the info contained in
 #   DeepNet.layers to invoke the right function!
@@ -24,7 +22,7 @@ import time
 #   define a function in activations.py (imported let's say as act), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": act.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh};
+activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu};
 
 # the same method is employed for the choice of the loss function
 # Use this struct in this way: 
@@ -38,7 +36,7 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "sigmoid": de.dSigmoid, "tanh": de.dTanh};
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": act.leakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh};
 
 # the same method is employed for the choice of the weights' initialization
 # Use this struct in this way: 
@@ -119,7 +117,7 @@ class DeepNet(object):
     #   the matrix of the activations (even one element for example in single output nn)
     def activation(self, X, layer):
         Z = np.dot(self.W[layer].T,X)+self.Bias[layer]; # activate (linearly) the input
-        return activations_dict[self.activations[layer]](Z); # activate the actiovation function of each layer using the vocabulary defined at the beginning            
+        return activations_dict[self.activations[layer]](Z); # activate the activation function of each layer using the vocabulary defined at the beginning            
     
     # perform activation truncated to a given layer
     # please note that for a L layers nn, we will have L activations Z(1), .., Z(4)
@@ -238,12 +236,12 @@ class DeepNet(object):
     
     
 """ Test part """
-# create a toy dataset
-X = da.randomData(1000,64);
-Y = da.randomData(1000,10);
-X = da.normalizeData(X); # normalize the input (except for the prediction labels)
+## create a toy dataset
+#X = da.randomData(1000,64);
+#Y = da.randomData(1000,10);
+#X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(64, np.array([[275, "sigmoid"], [10, "sigmoid"]]), "L2");
+net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2");
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
 #print("Initial weights ", net.W);
@@ -287,8 +285,9 @@ Y_test = test_Y;
 #Y_test = drec.normalizeData(Y_test.T).T;
 
 """ Train with full batch (size of the batch equals to the size of the dataset) """
-for e in range(150):
-    print((150-e)," epochs left");
+epochs = 50;
+for e in range(epochs):
+    print((epochs-e)," epochs left");
     for n in range(X.shape[1]):
         net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
 
