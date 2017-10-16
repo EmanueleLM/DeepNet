@@ -60,7 +60,7 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 0.0045; # default learning rate for each iteration phase
+        self.learning_rate = 0.08; # default learning rate for each iteration phase
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
         print("\nNetwork created succesfully!")
@@ -192,47 +192,7 @@ class DeepNet(object):
             self.W[i] -= (net.learning_rate*dW[i]);  # add the learning rate for EACH layer   
             self.Bias[i] -= (net.learning_rate*dB[i]).reshape(1,); 
         return;
-        
-    # function that performs a step of batch backpropagation of the weights update from the output
-    #   (i.e. the loss error) to the varoius weights of the net
-    # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
-    def batchBackpropagation(self, X, T, batch_size):  
-        dW = list(); # list of deltas that are used to calculate weights' update
-        dB = np.array([]); # array of deltas that are used to calculate biases' update
-        y_hat = (1/batch_size)*np.sum([self.netActivation(x) for x in X]); # prediction of the network
-        dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
-        # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
-        # we get something like partial_activation = {df_last(Z(last))/dZ(last), .., x}
-        partial_derivatives = list(derivatives_dict[self.activations[i]]((1/batch_size)*sum([self.partialActivation(x, i) for x in X])) for i in range(self.activations.shape[0])); # partial derivatives of the net 
-        partial_derivatives = partial_derivatives[::-1]; # reverse the list (we will use the net in a reverse fashion)
-        partial_derivatives.append(sum([x for x in X])); # append the last derivative which is X (dWX/dW = X)
-        # calculate the partial activation of each function, and reverse the list
-        # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
-        partial_activations = list((1/batch_size)*sum([self.partialActivation(x, i) for x in X]) for i in range(self.activations.shape[0]))[::-1];
-        partial_activations.append(X);
-        #print("\nPartial activations' functions: \n", partial_activations);
-        #print("\nPartial derivatives' functions: \n", partial_derivatives);
-        for l in range(len(self.W))[::-1]:
-            chain = 0;
-            # calculate each dW and append it to the list
-            if l != len(self.W)-1: # all the iterations except the first one 
-                chain = np.dot(self.W[l+1], chain);
-                chain = np.multiply(np.ones(self.W[l].shape), partial_derivatives[len(self.W)-l]);
-            else:
-                chain = (np.multiply(np.ones(self.W[l].shape), partial_derivatives[0])); # calculate the last derivative and multiply it to the 
-            #print(chain);
-            dW.append(np.multiply( chain, partial_activations[len(self.W)-l]) );
-            dB = np.append(dB, np.sum(chain));
-        dW = dW[::-1];
-        #print("Weights' updates", dW);
-        #print("biases' updates", dB);
-        # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
-        for i in range(len(self.W)):
-            #print(i);
-            self.W[i] -= (net.learning_rate*dY*dW[i]);  # add the learning rate for EACH layer   
-            self.Bias[i] -= (net.learning_rate*dY*dB[i]).reshape(1,); 
-        return;
-    
+          
     
 """ Test part """
 ## create a toy dataset
@@ -240,7 +200,7 @@ class DeepNet(object):
 #Y = da.randomData(1000,10);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(64, np.array([[128, "relu"], [10, "sigmoid"]]), "L2");
+net = DeepNet(64, np.array([[275, "sigmoid"], [10, "sigmoid"]]), "L2");
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
 #print("Initial weights ", net.W);
@@ -256,7 +216,7 @@ for i in range(len(net.W)):
 """ Test the net with a simple digit recognition test """
 import utils_digit_recognition as drec
 
-train_percentage = 70; # percentage of the dataset used for training
+train_percentage = 90; # percentage of the dataset used for training
 
 digits = drec.load_digits(); # import the dataset
 
