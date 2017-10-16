@@ -237,19 +237,33 @@ class DeepNet(object):
           
     
 """ Test part """
-## create a toy dataset
-#X = da.randomData(1000,64);
-#Y = da.randomData(1000,10);
-#X = da.normalizeData(X); # normalize the input (except for the prediction labels)
+# create a toy dataset
+X = da.randomData(1000,64);
+Y = da.randomData(1000,10);
+X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
-net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2");
+# in order to create a net, just specify those few things
+#   net = DeepNet(d, np.array([[neurons, act]^(+)]), loss))
+#   d is the dimension of the input (x \in R^d for example)
+#   [neurons, act]^(+) this is a regexp that indicated that we want at least a layer (of at least one neuron, the output in that case)
+#       neurons is a integer that indicates the number of neurons in that layer
+#       act is a string that indicates the kind of activation (all of them are displayed in the activations_dict variable on top of this file)
+#       loss is a stirng that indicates which loss function we use (all of them are displayed in the loss_dict on the top of this file)
+#
+# let's make an example:
+#    we want to create a 4 layers deep net with all relu in the hidden layers and in the last layer a 5 neurons sigmoid
+#    each input has dimension 10, and each hidden layer has respectively 15, 45, 35, 20 hidden neurons
+#    we want as loss the L1 (lasso)
+#    we just specify:
+#    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
+net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2"); # create a net with this simple syntax
+
+# initialize the weights (the way you can initialize them are specified in weights_dict)
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
-#print("Initial weights ", net.W);
-#for n in range(X.shape[1]):
-#    net.backpropagation(X[:,n], Y[:,n]);
-#X = X.reshape(1000,3,1);
-#Y = Y.reshape(1000,1,1);
-#for n in range(0, 1000, 100):
-#    net.batchBackpropagation(X[n:n+100].reshape(3,100,1), Y[n:n+100].reshape(1,100,1), 100);
-#print("Final weights ", net.W);
+    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
+
+print("\nInitial weights and biases: \n", net.W, net.Bias);
+for n in range(X.shape[1]):
+    net.backpropagation(X[:,n], Y[:,n]);
+print("\nFinal weights and biases: \n", net.W, net.Bias);
