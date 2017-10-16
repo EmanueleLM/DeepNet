@@ -28,14 +28,13 @@ def dYL1(Y, T):
     
 # derivative of Y wrt the exit variable for the Cross Entropy loss function  
 def dYCrossEntropy(Y, T):
-    if Y == 1:
-        return 1;
-    return np.add(T, -Y)/np.dot(Y, 1-Y);
+    Y[Y==1] = 1;
+    return np.add(T, -Y)/np.dot(Y.T, 1-Y);
 
 # (partial) derivative of sigmoid function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dSigmoid(Z):
-    return np.exp(-Z)/np.power(1+np.exp(-Z), 2);
+    return Z*(1-Z);
 
 # (partial) derivative of ReLu function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
@@ -47,7 +46,7 @@ def dRelu(Z):
 # (partial) derivative of LeakyReLu function wrt variable Z, where \epsilon is set to 0.01
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dLeakyRelu(Z):
-    Z[Z<=0] = 0.01;
+    Z[Z<=0] = 0.1;
     Z[Z>0] = 1;
     return Z;
 
