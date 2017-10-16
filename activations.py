@@ -20,7 +20,7 @@ def relu(Z):
 
 # LeakyReLU activation function, where \epsilon is set to 0.01
 def leakyRelu(Z):
-    Z[Z<=0] = 0.01;
+    Z[Z<=0] = 0.1;
     return Z;
 
 # tanh activation function
