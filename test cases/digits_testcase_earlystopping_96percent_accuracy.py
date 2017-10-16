@@ -11,8 +11,6 @@ We obtain, on the digit dataset, an accuracy of about 96% on unseen data
 Use this code just below the code on your deepnet.py (it should be done in another file indipendently importing
 the module, I don't have both the time and the will)
 
-
-
 In order to obtain those results, we set learning_rate = 0.02, no momentum
 """
 
