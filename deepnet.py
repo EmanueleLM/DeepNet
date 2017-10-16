@@ -14,6 +14,7 @@ import activations as act
 import loss as ls
 import derivatives as de
 import weights as we
+import copy as cp
 import data as da
 
 # we use a dictionary to handle each layer's activation function: we will need just to know the info contained in
@@ -61,8 +62,13 @@ class DeepNet(object):
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
         self.learning_rate = 0.08; # default learning rate for each iteration phase
+        self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
+        self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
+        self.dB_old = np.zeros([layers.shape[0], 1]);
+        self.momenutum_rate = 0.0005; # default momentum rate for the moemntum weights update
         for l in range(len(layers)-1):
-            self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])])));
+            self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
+            self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
         print("\nNetwork created succesfully!")
         self.explainNet();
         
@@ -72,8 +78,17 @@ class DeepNet(object):
     def setWeights(self, W, layer):
         self.W[layer] = W;
     #   bias
-    def setBias(self, B):
-        self.Bias = B;
+    def setBias(self, B, layer):
+        self.Bias[layer] = B;
+    # old weights
+    def setOldWeights(self, W, layer):
+        self.dW_old[layer] = W;
+    # old bias
+    def setOldBias(self, B, layer):
+        self.dB_old[layer] = B;
+    # momentum rate
+    def setMomentumRate(self, m):
+        self.momenutum_rate = m;
     #   activations    
     def setActivation(self, layer, activation):
         self.activations[layer] = activation;
@@ -89,8 +104,17 @@ class DeepNet(object):
     def getWeights(self, layer):
         return self.W[layer];
     #   bias
-    def getBias(self):
-        return self.Bias;
+    def getBias(self, layer):
+        return self.Bias[layer];
+    #   old weights
+    def getOldWeights(self, layer):
+        return self.dW_old[layer];
+    #   old bias
+    def getOldBias(self, layer):
+        return self.dB_old[layer];
+    # momentum rate
+    def getMomentumRate(self, m):
+        return self.momenutum_rate;
     #   activations    
     def getActivation(self, layer):
         return self.activations[layer];
@@ -187,11 +211,29 @@ class DeepNet(object):
         #print("Weights' updates", dW);
         #print("biases' updates", dB);
         # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
-        for i in range(len(self.W)):
-            #print(i);
-            self.W[i] -= (net.learning_rate*dW[i]);  # add the learning rate for EACH layer   
-            self.Bias[i] -= (net.learning_rate*dB[i]).reshape(1,); 
+        self.weightsUpdate(dW, dB);
         return;
+        
+    # function that updates the weights of the net
+    # takes as input
+    #    dW, the vector that contains all the weights' updates of the net
+    #    dB, the same, but for the biases
+    def weightsUpdate(self, dW, dB):
+        for i in range(len(dW)):
+            self.W[i] -= (self.learning_rate*dW[i]);  # add the learning rate for EACH layer   
+            self.Bias[i] -= (self.learning_rate*dB[i]).reshape(1,); 
+            
+    # function that updates the weights of the net, with the momentum formula
+    # takes as input
+    #    dW, the vector that contains all the weights' updates of the net
+    #    dB, the same, but for the biases
+    def weightsUpdateWithMomentum(self, dW, dB):
+        #print("magnitude of the update of the first set of weights is ", np.log10(np.abs(np.sum(self.dW_old[0])+ np.sum(dW[0]))));
+        for i in range(len(dW)):
+            self.W[i] -= (self.learning_rate*dW[i] - self.momenutum_rate*self.dW_old[i]);  # add the learning rate for EACH layer   
+            self.Bias[i] -= (self.learning_rate*dB[i] - self.momenutum_rate*self.dB_old[i]).reshape(1,); 
+        self.dW_old = cp.deepcopy(dW); # copy the previous weights
+        self.dB_old = cp.deepcopy(dB); # .. and biases
           
     
 """ Test part """
@@ -244,7 +286,7 @@ Y_test = test_Y;
 #Y_test = drec.normalizeData(Y_test.T).T;
 
 """ Train with full batch (size of the batch equals to the size of the dataset) """
-epochs = 20;
+epochs = 5;
 for e in range(epochs):
     print((epochs-e)," epochs left");
     for n in range(X.shape[1]):
