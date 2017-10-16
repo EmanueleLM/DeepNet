@@ -54,5 +54,6 @@ def dLeakyRelu(Z):
 # (partial) derivative of tanh function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dTanh(Z):
-    return 4/(np.power(np.exp(Z)+np.exp(-Z), 2));
+    return (1-Z)*(1+Z);
+    #return 4/(np.power(np.exp(Z)+np.exp(-Z), 2));
     
