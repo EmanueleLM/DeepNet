@@ -23,7 +23,7 @@ import data as da
 #   define a function in activations.py (imported let's say as act), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": act.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu};
+activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu, "linear": act.linear};
 
 # the same method is employed for the choice of the loss function
 # Use this struct in this way: 
@@ -37,7 +37,7 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": act.leakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh};
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": act.leakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh, "linear": de.dLinear};
 
 # the same method is employed for the choice of the weights' initialization
 # Use this struct in this way: 
@@ -61,11 +61,11 @@ class DeepNet(object):
         self.Bias = np.zeros([layers.shape[0], 1]);
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 0.002; # default learning rate for each iteration phase
+        self.learning_rate =0.015 # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
-        self.momenutum_rate = 0.0005; # default momentum rate for the moemntum weights update
+        self.momenutum_rate = 0.006; # default momentum rate for the moemntum weights update
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
@@ -198,20 +198,20 @@ class DeepNet(object):
             if l != len(self.W)-1:
                 #print(l);
                 chain = np.dot( self.W[l+1], chain);
-                #print(chain.shape)
+                #print(chain.shape);
                 chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
-                #print(partial_derivatives[len(self.W)-l].shape)
+                #print(partial_derivatives[len(self.W)-l].shape);
             else:
                 chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
             dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
             dB = np.append(dB, np.sum(chain));
         #for dw in range(len(dW)):
-        #    print("p",dW[dw].shape)
+        #    print("p",dW[dw].shape);
         dW = dW[::-1];
         #print("Weights' updates", dW);
         #print("biases' updates", dB);
         # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
-        self.weightsUpdateWithMomentum(dW, dB);
+        self.weightsUpdate(dW, dB);
         return;
         
     # function that updates the weights of the net
@@ -238,9 +238,11 @@ class DeepNet(object):
     
 """ Test part """
 # create a toy dataset
-X = da.randomData(1000,64);
-Y = da.randomData(1000,10);
-X = da.normalizeData(X); # normalize the input (except for the prediction labels)
+X = da.randomBinaryData(1000, 5);
+Y = np.zeros([1000,1])
+for n in range(X.shape[1]):
+    Y[n] = np.sum(X[:,n]);
+#X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
 # in order to create a net, just specify those few things
 #   net = DeepNet(d, np.array([[neurons, act]^(+)]), loss))
@@ -256,14 +258,16 @@ X = da.normalizeData(X); # normalize the input (except for the prediction labels
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2"); # create a net with this simple syntax
+net = DeepNet(5, np.array([[10, "linear"], [1, "linear"]]), "L2"); # create a net with this simple syntax
 
 # initialize the weights (the way you can initialize them are specified in weights_dict)
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
     net.setBias(weights_dict['lecun'](net.Bias[i]), i);
 
-print("\nInitial weights and biases: \n", net.W, net.Bias);
+#print("\nInitial weights and biases: \n", net.W, net.Bias);
 for n in range(X.shape[1]):
-    net.backpropagation(X[:,n], Y[:,n]);
-print("\nFinal weights and biases: \n", net.W, net.Bias);
+    net.backpropagation(X[:,n], Y[n]);
+#print("\nFinal weights and biases: \n", net.W, net.Bias);
+for i in range(20):
+    print(net.netActivation(X[:,i]), Y[i]);

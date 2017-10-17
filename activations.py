@@ -26,3 +26,7 @@ def leakyRelu(Z):
 # tanh activation function
 def tanh(Z):
     return (np.exp(Z)-np.exp(-Z))/(np.exp(Z)+np.exp(-Z));
+
+# linear activation function
+def linear(Z):
+    return Z;
