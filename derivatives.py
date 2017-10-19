@@ -35,7 +35,8 @@ def dYCrossEntropy(Y, T):
 # (partial) derivative of sigmoid function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dSigmoid(Z):
-    return Z*(1-Z);
+    #return (np.exp(-Z))/np.power(1+np.exp(-Z), 2); # use this version with the modified line in deepnet.py, commented at line (about) 186
+    return np.multiply(Z,(1-Z));
 
 # (partial) derivative of ReLu function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
@@ -54,10 +55,4 @@ def dLeakyRelu(Z):
 # (partial) derivative of tanh function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dTanh(Z):
-    return (1-Z)*(1+Z);
-
-
-# (partial) derivative of linear function wrt variable Z
-# the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
-def dLinear(Z):
-    return 1;
+    return np.multiply((1-Z),(1+Z));
