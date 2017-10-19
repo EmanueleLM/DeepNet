@@ -23,7 +23,7 @@ import data as da
 #   define a function in activations.py (imported let's say as act), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": act.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu, "linear": act.linear};
+activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu};
 
 # the same method is employed for the choice of the loss function
 # Use this struct in this way: 
@@ -37,7 +37,7 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": act.leakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh, "linear": de.dLinear};
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": de.dLeakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh};
 
 # the same method is employed for the choice of the weights' initialization
 # Use this struct in this way: 
@@ -132,6 +132,7 @@ class DeepNet(object):
         for l in range(len(self.W)):
             print("The layer number ", l+1, " has ", self.W[l].shape[0], " input(s) per neuron, ", self.W[l].shape[1], " neuron(s) and ", self.activations[l], " as activation function.");
         print("The loss function selected is ", self.loss);
+        print("\n\n");
         
     # function that activates a single, given layer and, based on its activation function, returns the desired output
     # takes as input
@@ -196,9 +197,8 @@ class DeepNet(object):
         #    print(l, partial_derivatives[l].shape, partial_activations[l].shape);
         for l in range(len(self.W))[::-1]:
             if l != len(self.W)-1:
-                #print(l);
+                #print(l);               
                 chain = np.dot( self.W[l+1], chain);
-                #print(chain.shape);
                 chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
                 #print(partial_derivatives[len(self.W)-l].shape);
             else:
@@ -207,7 +207,10 @@ class DeepNet(object):
             dB = np.append(dB, np.sum(chain));
         #for dw in range(len(dW)):
         #    print("p",dW[dw].shape);
-        dW = dW[::-1];
+        dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
+        
+        print(self.checkGradient(dW, dB, y_hat, T)); # check the gradient's update
+                
         #print("Weights' updates", dW);
         #print("biases' updates", dB);
         # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
@@ -234,14 +237,39 @@ class DeepNet(object):
             self.Bias[i] -= (self.learning_rate*dB[i] - self.momenutum_rate*self.dB_old[i]).reshape(1,); 
         self.dW_old = cp.deepcopy(dW); # copy the previous weights
         self.dB_old = cp.deepcopy(dB); # .. and biases
+        
+    # function that checks if the gradient is computed correctly by comparing it with a 
+    #   small perturbation of the loss function
+    def checkGradient(self, dW, dB, Y, T):
+        epsilon = 10**-3;
+        deltaW = np.array([]);
+        deltaL = np.array([]);
+        L = np.sum(self.calculateLoss(Y, T)); # loss with the actual weights
+        for i in range(len(self.W)):
+            deltaW = np.append(deltaW, dW[i].flatten());
+            deltaW = np.append(deltaW, dB[i]);
+        for n in range(len(self.W)):
+            for i in range(self.W[n].shape[0]):
+                for j in range(self.W[n].shape[1]):
+                    self.W[n][i][j] += epsilon;
+                    partialL = np.sum(self.calculateLoss(Y ,T));
+                    deltaL = np.append(deltaL, (partialL - L)/epsilon);
+                    self.W[n][i][j] -= epsilon;
+            self.Bias[n] += epsilon;
+            partialL = np.sum(self.calculateLoss(Y ,T));
+            deltaL = np.append(deltaL, (partialL - L)/epsilon);
+            self.Bias[n] -= epsilon;
+        # calculate the euclidean distance between deltaW and deltaL
+        distance = np.sum(np.power(np.absolute(deltaW - deltaL), 2))/np.sum(np.power(deltaW, 2));
+        return distance;
           
     
 """ Test part """
 # create a toy dataset
-X = da.randomBinaryData(1000, 5);
-Y = np.zeros([1000,1])
-for n in range(X.shape[1]):
-    Y[n] = np.sum(X[:,n]);
+X = da.randomData(1000, 3);
+Y = da.randomData(1000, 3);
+#for n in range(X.shape[1]):
+#    Y[n] = np.sum(X[:,n]);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
 
 # in order to create a net, just specify those few things
@@ -258,7 +286,7 @@ for n in range(X.shape[1]):
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(5, np.array([[10, "linear"], [1, "linear"]]), "L2"); # create a net with this simple syntax
+net = DeepNet(3, np.array([[5, "sigmoid"], [3, "sigmoid"]]), "L2"); # create a net with this simple syntax
 
 # initialize the weights (the way you can initialize them are specified in weights_dict)
 for i in range(len(net.W)):
@@ -267,7 +295,7 @@ for i in range(len(net.W)):
 
 #print("\nInitial weights and biases: \n", net.W, net.Bias);
 for n in range(X.shape[1]):
-    net.backpropagation(X[:,n], Y[n]);
-#print("\nFinal weights and biases: \n", net.W, net.Bias);
-for i in range(20):
-    print(net.netActivation(X[:,i]), Y[i]);
+    net.backpropagation(X[:,n], Y[:,n]);
+##print("\nFinal weights and biases: \n", net.W, net.Bias);
+#for i in range(20):
+#    print(net.netActivation(X[:,i]), Y[:,i]);
