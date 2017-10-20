@@ -57,17 +57,19 @@ weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun"
 class DeepNet(object):
     def __init__(self, input_size, layers, loss):
         self.W = list(); # list that contains all the weights in the net (we use a list and np.array for each matrix of weights, for efficiency reasons)
-        self.W.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
-        self.Bias = np.zeros([layers.shape[0], 1]);
+        self.W.append(np.array(np.zeros([input_size, np.int(layers[0][0])]))); # append the first set of weights
+        self.Bias = list(); # list that contains all the biases
+        self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate =0.015 # default learning rate for each iteration phase
+        self.learning_rate = .0005; # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
         self.momenutum_rate = 0.006; # default momentum rate for the moemntum weights update
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
+            self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
             self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
         print("\nNetwork created succesfully!")
         self.explainNet();
@@ -141,7 +143,7 @@ class DeepNet(object):
     # returns
     #   the matrix of the activations (even one element for example in single output nn)
     def activation(self, X, layer):
-        Z = np.dot(self.W[layer].T,X)+self.Bias[layer]; # activate (linearly) the input
+        Z = np.dot(self.W[layer].T,X) + self.Bias[layer]; # activate (linearly) the input
         return activations_dict[self.activations[layer]](Z); # activate the activation function of each layer using the vocabulary defined at the beginning            
     
     # perform activation truncated to a given layer
@@ -176,9 +178,14 @@ class DeepNet(object):
     # function that performs a step of back propagation of the weights update from the output
     #   (i.e. the loss error) to the varoius weights of the net
     # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
+    # takes as input
+    #   the input sample X (column vector)
+    #   the expected output (also as column vector)
+    # returns
+    #   dW, dB: the weights/biases updates at this step
     def backpropagation(self, X, T):  
         dW = list(); # list of deltas that are used to calculate weights' update
-        dB = np.array([]); # array of deltas that are used to calculate biases' update
+        dB = list(); # array of deltas that are used to calculate biases' update
         y_hat = self.netActivation(X); # prediction of the network
         dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
         # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
@@ -190,32 +197,24 @@ class DeepNet(object):
         # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
         partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
         partial_activations.append(X);
-        #print("\nPartial activations' functions: \n", partial_activations);
-        #print("\nPartial derivatives' functions: \n", partial_derivatives);
         chain = 0;
-        #for l in range(len(partial_derivatives)):
-        #    print(l, partial_derivatives[l].shape, partial_activations[l].shape);
         for l in range(len(self.W))[::-1]:
             if l != len(self.W)-1:
-                #print(l);               
                 chain = np.dot( self.W[l+1], chain);
                 chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
-                #print(partial_derivatives[len(self.W)-l].shape);
             else:
                 chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
             dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
-            dB = np.append(dB, np.sum(chain));
+            dB.append(chain);
         #for dw in range(len(dW)):
         #    print("p",dW[dw].shape);
         dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
-        
-        print(self.checkGradient(dW, dB, y_hat, T)); # check the gradient's update
-                
-        #print("Weights' updates", dW);
-        #print("biases' updates", dB);
-        # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
-        self.weightsUpdate(dW, dB);
-        return;
+        dB = dB[::-1];
+        #print(dW, "\n\n", dB);
+        print(self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update
+        #print(dW, dB)               
+        self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        return dW, dB;
         
     # function that updates the weights of the net
     # takes as input
@@ -224,7 +223,7 @@ class DeepNet(object):
     def weightsUpdate(self, dW, dB):
         for i in range(len(dW)):
             self.W[i] -= (self.learning_rate*dW[i]);  # add the learning rate for EACH layer   
-            self.Bias[i] -= (self.learning_rate*dB[i]).reshape(1,); 
+            self.Bias[i] -= (self.learning_rate*dB[i]); 
             
     # function that updates the weights of the net, with the momentum formula
     # takes as input
@@ -240,34 +239,43 @@ class DeepNet(object):
         
     # function that checks if the gradient is computed correctly by comparing it with a 
     #   small perturbation of the loss function
-    def checkGradient(self, dW, dB, Y, T):
+    def checkGradient(self, dW, dB, X, Y, T):
         epsilon = 10**-3;
         deltaW = np.array([]);
         deltaL = np.array([]);
-        L = np.sum(self.calculateLoss(Y, T)); # loss with the actual weights
         for i in range(len(self.W)):
             deltaW = np.append(deltaW, dW[i].flatten());
-            deltaW = np.append(deltaW, dB[i]);
+        for i in range(len(self.Bias)):
+            deltaW = np.append(deltaW, dB[i].flatten());
+            
         for n in range(len(self.W)):
             for i in range(self.W[n].shape[0]):
                 for j in range(self.W[n].shape[1]):
+                    self.W[n][i][j] += epsilon;                   
+                    partialL_plus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
+                    self.W[n][i][j] -= 2*epsilon;
+                    partialL_minus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
                     self.W[n][i][j] += epsilon;
-                    partialL = np.sum(self.calculateLoss(Y ,T));
-                    deltaL = np.append(deltaL, (partialL - L)/epsilon);
-                    self.W[n][i][j] -= epsilon;
-            self.Bias[n] += epsilon;
-            partialL = np.sum(self.calculateLoss(Y ,T));
-            deltaL = np.append(deltaL, (partialL - L)/epsilon);
-            self.Bias[n] -= epsilon;
+                    deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
+        for n in range(len(self.Bias)):
+            for j in range(len(self.Bias[n])):
+                self.Bias[n][j] += epsilon;
+                partialL_plus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
+                self.Bias[n][j] -= 2*epsilon;
+                partialL_minus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
+                self.Bias[n][j] += epsilon;
+                deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         # calculate the euclidean distance between deltaW and deltaL
-        distance = np.sum(np.power(np.absolute(deltaW - deltaL), 2))/np.sum(np.power(deltaW, 2));
+        #print(deltaW.shape, deltaL.shape);
+        #print(deltaW, deltaL);
+        distance = np.sqrt(np.sum((np.absolute(np.power(deltaW - deltaL, 2)))))/np.sqrt(np.sum(np.power(deltaW, 2)));
         return distance;
           
     
 """ Test part """
-# create a toy dataset
-X = da.randomData(1000, 3);
-Y = da.randomData(1000, 3);
+## create a toy dataset
+#X = da.randomData(1000, 2);
+#Y = da.randomData(1000, 1);
 #for n in range(X.shape[1]):
 #    Y[n] = np.sum(X[:,n]);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
@@ -286,16 +294,84 @@ Y = da.randomData(1000, 3);
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(3, np.array([[5, "sigmoid"], [3, "sigmoid"]]), "L2"); # create a net with this simple syntax
-
-# initialize the weights (the way you can initialize them are specified in weights_dict)
-for i in range(len(net.W)):
-    net.setWeights(weights_dict['lecun'](net.W[i]), i);
-    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
-
+# net = DeepNet(3, np.array([[5, "sigmoid"], [3, "sigmoid"]]), "L2"); # create a net with this simple syntax
+#
+## initialize the weights (the way you can initialize them are specified in weights_dict)
+#for i in range(len(net.W)):
+#    net.setWeights(weights_dict['lecun'](net.W[i]), i);
+#    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
 #print("\nInitial weights and biases: \n", net.W, net.Bias);
-for n in range(X.shape[1]):
-    net.backpropagation(X[:,n], Y[:,n]);
+#for n in range(X.shape[1]):
+#    net.backpropagation(X[:,n], Y[:,n]);
+
 ##print("\nFinal weights and biases: \n", net.W, net.Bias);
 #for i in range(20):
 #    print(net.netActivation(X[:,i]), Y[:,i]);
+net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2"); # create the net
+for i in range(len(net.W)): #initialize the weights
+    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
+    
+import utils_digit_recognition as drec
+
+train_percentage = 60; # percentage of the dataset used for training
+validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
+
+digits = drec.load_digits(); # import the dataset
+
+train_size = len(digits.images); # train size is the number of samples in the digits' dataset
+
+images, targets = drec.unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
+
+train, test = drec.dataSplit(images, train_percentage);# split train adn test
+train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
+
+validation, test = drec.dataSplit(test, validation_percentage);
+validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
+
+train_Y = drec.binarization(train_Y); # binarize both the train and test labels
+test_Y = drec.binarization(test_Y); # ..
+validation_Y = drec.binarization(validation_Y); # ..
+
+
+X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
+Y = train_Y;
+
+X = drec.normalizeData(X);
+#Y = drec.normalizeData(Y.T).T;
+
+X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
+Y_test = test_Y;
+
+X_validation = validation.reshape(validation.shape[0], validation.shape[1]*validation.shape[2]).T;
+Y_validation = validation_Y;
+
+
+#X_test = drec.normalizeData(X_test);
+#Y_test = drec.normalizeData(Y_test.T).T;
+
+""" Train with full batch (size of the batch equals to the size of the dataset) """
+epochs = 100;
+validation_error = 1; # validation stop metric, initially the error is everywhere
+validation_size = X_validation.shape[1];
+for e in range(epochs):
+    print((epochs-e)," epochs left");
+    for n in range(X.shape[1]):
+        net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
+        number_of_errors_validation = 0;
+    for n in range(X_validation.shape[1]):
+        if np.argmax(net.netActivation(X_validation[:,n].reshape(64,1))) != np.argmax(Y_validation[n].reshape(10,1)):
+            number_of_errors_validation += 1;
+    if float(number_of_errors_validation/validation_size) > validation_error:
+        break;
+    else:
+        validation_error = number_of_errors_validation/validation_size;
+        print("validation error: ", validation_error);
+
+""" test how much we are precise in our prediction """
+number_of_errors = 0; # total number of errors on the test set
+test_size = X_test.shape[1];
+for n in range(X_test.shape[1]):
+    if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
+        number_of_errors += 1;
+print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
+
