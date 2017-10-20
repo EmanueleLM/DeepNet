@@ -24,12 +24,6 @@ def lossL1(Y, T):
 # T is the real value (we are in a supervised scenario)
 # we expect that the number of dimensions is the first dimension of both the input (so Y.shape[1]=T.shape[1]=dimensions)
 def lossCrossEntropy(T, Y):
-    res = np.zeros(Y.shape);
-    for i in range(Y.shape[0]):
-        if Y[i] == 0:
-           Y[i] = .0001;
-        elif Y[i]==1:
-            Y[i] = .9999;
-        else:
-            res[i] = -T[i]*np.log2(Y[i])-(1-T[i])*np.log2(1-Y[i]);
-    return res;
+    Y[Y==1] = 0.9999;
+    Y[Y==0] = 0.0001
+    return -T*np.log2(Y)-(1-T)*np.log2(1-Y);

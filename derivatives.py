@@ -28,9 +28,9 @@ def dYL1(Y, T):
     
 # derivative of Y wrt the exit variable for the Cross Entropy loss function  
 def dYCrossEntropy(Y, T):
-    Y[Y==1] = 0.01;
-    Y[Y==0] = 0.99;
-    return np.add(T, -Y)/np.dot(Y.T, 1-Y);
+    Y[Y==1] = 0.9999;
+    Y[Y==0] = 0.0001;
+    return (Y-T)/(Y*(1-Y));
 
 # (partial) derivative of sigmoid function wrt variable Z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
