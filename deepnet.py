@@ -171,7 +171,8 @@ class DeepNet(object):
     #   the prediction Y (can be calculated as self.netActivation(input))
     #   the target value 
     # returns:
-    #   the loss with the formula specified in self.loss, using the dictionary structure loss_dict to invoke the correct function (see above for more info)
+    #   the loss with the formula specified in self.loss, using the dictionary structure loss_dict to invoke the correct function 
+    #       (see above for more info)
     def calculateLoss(self, Y, T):
         return loss_dict[self.loss](Y, T)
     
@@ -239,16 +240,26 @@ class DeepNet(object):
         
     # function that checks if the gradient is computed correctly by comparing it with a 
     #   small perturbation of the loss function
+    # here (http://ufldl.stanford.edu/wiki/index.php/Gradient_checking_and_advanced_optimization) is explained the method used
+    # practically speaking we check each dW/dB we have calculated with backprop. and we see how much the vector dL/dv (where v is 
+    #   one of the parameter of the net) is different from the loss when only v is increased by a small fraction (usually 10**-3)
+    # we compare the two vectors dL/dv and dW.dB (concatenated and vectorized), using the 2-norm distance
+    # the function takes as input
+    #   dW, dB: the changes we calculated for each weight/bias in the backprop phase
+    #   X: input sample
+    #   Y: prediction of the net with the weights not yet updated
+    #   T: prediction (we are in a supervised scenario) 'label' for the given input
+    # returns:
+    #   the distance between the delta weights/biases vector and the derivative of the loss wrt all the parameters of the net
     def checkGradient(self, dW, dB, X, Y, T):
-        epsilon = 10**-3;
-        deltaW = np.array([]);
-        deltaL = np.array([]);
-        for i in range(len(self.W)):
+        epsilon = 10**-3; # the epsioln we use to calculate dL/dv manually
+        deltaW = np.array([]); # contains all the weights' update (calculated in backprop phase)
+        deltaL = np.array([]); # contains all the derivatives of the loss function wrt a single parameter of the net, evaluated in a specific point (X,Y,T,W \setminus v,v)
+        for i in range(len(self.W)): # flatten the list of weights/biases
             deltaW = np.append(deltaW, dW[i].flatten());
         for i in range(len(self.Bias)):
-            deltaW = np.append(deltaW, dB[i].flatten());
-            
-        for n in range(len(self.W)):
+            deltaW = np.append(deltaW, dB[i].flatten());            
+        for n in range(len(self.W)): # evaluate the loss with a small perturbation of each parameter of the net, one by one
             for i in range(self.W[n].shape[0]):
                 for j in range(self.W[n].shape[1]):
                     self.W[n][i][j] += epsilon;                   
@@ -257,7 +268,7 @@ class DeepNet(object):
                     partialL_minus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
                     self.W[n][i][j] += epsilon;
                     deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
-        for n in range(len(self.Bias)):
+        for n in range(len(self.Bias)): # same with the biases vectors
             for j in range(len(self.Bias[n])):
                 self.Bias[n][j] += epsilon;
                 partialL_plus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
@@ -268,7 +279,7 @@ class DeepNet(object):
         # calculate the euclidean distance between deltaW and deltaL
         #print(deltaW.shape, deltaL.shape);
         #print(deltaW, deltaL);
-        distance = np.sqrt(np.sum((np.absolute(np.power(deltaW - deltaL, 2)))))/np.sqrt(np.sum(np.power(deltaW, 2)));
+        distance = np.sqrt(np.sum((np.absolute(np.power(deltaW - deltaL, 2)))))/np.sqrt(np.sum(np.power(deltaW, 2))); # evaluate the distance between the two vectors using the l2 norm
         return distance;
           
     
