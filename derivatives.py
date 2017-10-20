@@ -24,7 +24,7 @@ def dYL2(Y, T):
 # derivative of Y wrt the exit variable for the L1 loss function
 # which is basically the signum of the difference between T and Y (that's why in regression a lot of weights are zero)
 def dYL1(Y, T):
-    return np.sign(T-Y);
+    return np.sign(T-Y)*(-1);
     
 # derivative of Y wrt the exit variable for the Cross Entropy loss function  
 def dYCrossEntropy(Y, T):
