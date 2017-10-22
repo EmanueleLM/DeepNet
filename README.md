@@ -1,7 +1,7 @@
 # DeepNet
 Basic deep network to evaulate the state of the art optimizations in deep learning
 
-Things implemented so far, 20/10/2017:
+Things implemented so far, 22/10/2017:
 
 -customizable deep net (specify with a line of code whole the net, from neurons to activations to loss)
 
