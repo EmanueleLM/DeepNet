@@ -62,11 +62,11 @@ class DeepNet(object):
         self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = .0005; # default learning rate for each iteration phase
+        self.learning_rate = .1; # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
-        self.momenutum_rate = 0.006; # default momentum rate for the moemntum weights update
+        self.momenutum_rate = 0.5; # default momentum rate for the moemntum weights update
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
@@ -212,7 +212,7 @@ class DeepNet(object):
         dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
         dB = dB[::-1];
         #print(dW, "\n\n", dB);
-        print(self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update
+        print("Distance between dL/dv and dW.dB, using L2 norm, is ", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)
         #print(dW, dB)               
         self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
         return dW, dB;
@@ -234,7 +234,7 @@ class DeepNet(object):
         #print("magnitude of the update of the first set of weights is ", np.log10(np.abs(np.sum(self.dW_old[0])+ np.sum(dW[0]))));
         for i in range(len(dW)):
             self.W[i] -= (self.learning_rate*dW[i] - self.momenutum_rate*self.dW_old[i]);  # add the learning rate for EACH layer   
-            self.Bias[i] -= (self.learning_rate*dB[i] - self.momenutum_rate*self.dB_old[i]).reshape(1,); 
+            self.Bias[i] -= (self.learning_rate*dB[i] - self.momenutum_rate*self.dB_old[i]); 
         self.dW_old = cp.deepcopy(dW); # copy the previous weights
         self.dB_old = cp.deepcopy(dB); # .. and biases
         
@@ -278,15 +278,14 @@ class DeepNet(object):
                 deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         # calculate the euclidean distance between deltaW and deltaL
         #print(deltaW.shape, deltaL.shape);
-        #print(deltaW, deltaL);
-        distance = np.sqrt(np.sum((np.absolute(np.power(deltaW - deltaL, 2)))))/np.sqrt(np.sum(np.power(deltaW, 2))); # evaluate the distance between the two vectors using the l2 norm
+        distance = np.sqrt(np.sum(((np.absolute(np.power(deltaW, 2) - np.power(deltaL, 2))))))/np.sqrt(np.sum(np.absolute(np.power(deltaW, 2)))); # evaluate the distance between the two vectors using the l2 norm
         return distance;
           
     
 """ Test part """
-## create a toy dataset
-#X = da.randomData(1000, 2);
-#Y = da.randomData(1000, 1);
+# create a toy dataset
+X = da.randomComplexData(1000, 3);
+Y = da.randomComplexData(1000, 2);
 #for n in range(X.shape[1]):
 #    Y[n] = np.sum(X[:,n]);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
@@ -305,84 +304,19 @@ class DeepNet(object):
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-# net = DeepNet(3, np.array([[5, "sigmoid"], [3, "sigmoid"]]), "L2"); # create a net with this simple syntax
-#
-## initialize the weights (the way you can initialize them are specified in weights_dict)
-#for i in range(len(net.W)):
-#    net.setWeights(weights_dict['lecun'](net.W[i]), i);
-#    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
+net = DeepNet(3, np.array([[4, "sigmoid"], [2, "sigmoid"]]), "L1"); # create the net
+##
+# initialize the weights (the way you can initialize them are specified in weights_dict)
+for i in range(len(net.W)):
+    net.setWeights(weights_dict['lecun'](net.W[i]), i);
+    net.setWeights(we.complexWeights(net.W[i]), i);
+    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
+    net.setBias(we.complexWeights(net.Bias[i]), i);
+##    
 #print("\nInitial weights and biases: \n", net.W, net.Bias);
-#for n in range(X.shape[1]):
-#    net.backpropagation(X[:,n], Y[:,n]);
+for n in range(X.shape[1]):
+    net.backpropagation(X[:,n], Y[:,n]);
 
 ##print("\nFinal weights and biases: \n", net.W, net.Bias);
 #for i in range(20):
 #    print(net.netActivation(X[:,i]), Y[:,i]);
-net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2"); # create the net
-for i in range(len(net.W)): #initialize the weights
-    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
-    
-import utils_digit_recognition as drec
-
-train_percentage = 60; # percentage of the dataset used for training
-validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
-
-digits = drec.load_digits(); # import the dataset
-
-train_size = len(digits.images); # train size is the number of samples in the digits' dataset
-
-images, targets = drec.unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
-
-train, test = drec.dataSplit(images, train_percentage);# split train adn test
-train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
-
-validation, test = drec.dataSplit(test, validation_percentage);
-validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
-
-train_Y = drec.binarization(train_Y); # binarize both the train and test labels
-test_Y = drec.binarization(test_Y); # ..
-validation_Y = drec.binarization(validation_Y); # ..
-
-
-X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
-Y = train_Y;
-
-X = drec.normalizeData(X);
-#Y = drec.normalizeData(Y.T).T;
-
-X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
-Y_test = test_Y;
-
-X_validation = validation.reshape(validation.shape[0], validation.shape[1]*validation.shape[2]).T;
-Y_validation = validation_Y;
-
-
-#X_test = drec.normalizeData(X_test);
-#Y_test = drec.normalizeData(Y_test.T).T;
-
-""" Train with full batch (size of the batch equals to the size of the dataset) """
-epochs = 100;
-validation_error = 1; # validation stop metric, initially the error is everywhere
-validation_size = X_validation.shape[1];
-for e in range(epochs):
-    print((epochs-e)," epochs left");
-    for n in range(X.shape[1]):
-        net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
-        number_of_errors_validation = 0;
-    for n in range(X_validation.shape[1]):
-        if np.argmax(net.netActivation(X_validation[:,n].reshape(64,1))) != np.argmax(Y_validation[n].reshape(10,1)):
-            number_of_errors_validation += 1;
-    if float(number_of_errors_validation/validation_size) > validation_error:
-        break;
-    else:
-        validation_error = number_of_errors_validation/validation_size;
-        print("validation error: ", validation_error);
-
-""" test how much we are precise in our prediction """
-number_of_errors = 0; # total number of errors on the test set
-test_size = X_test.shape[1];
-for n in range(X_test.shape[1]):
-    if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
-        number_of_errors += 1;
-print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
-

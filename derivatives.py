@@ -18,13 +18,25 @@ import numpy as np
 
 # derivative of Y wrt the exit variable for the L2 loss function
 # since we use the function (T-Y)^2, we obtain 2(T-Y) as derivative
+# please note that this one holds if the function that our net is evaluating is from Real to Complex numbers
+#   otherwise in all non-trivial cases the conjugate of a complex-differentiable function is not 
+#   complex-differentiable itself 
 def dYL2(Y, T):
-    return 2*np.add(Y, -T);
+    if Y.dtype == 'complex' or Y.dtype == 'complex64':
+        return -2*np.real(np.add(T, -Y)); 
+    else:
+        return 2*np.add(Y, -T);
 
 # derivative of Y wrt the exit variable for the L1 loss function
 # which is basically the signum of the difference between T and Y (that's why in regression a lot of weights are zero)
+# please note that this one holds if the function that our net is evaluating is from Real to Complex numbers
+#   otherwise in all non-trivial cases the conjugate of a complex-differentiable function is not 
+#   complex-differentiable itself
 def dYL1(Y, T):
-    return np.sign(T-Y)*(-1);
+    if Y.dtype == 'complex' or Y.dtype == 'complex64':
+        return -np.real(np.add(T, -Y))/(np.sqrt(np.multiply(np.add(T, -Y),np.conjugate(np.add(T, -Y)))));
+    else:
+        return np.sign(T-Y)*(-1);
     
 # derivative of Y wrt the exit variable for the Cross Entropy loss function  
 def dYCrossEntropy(Y, T):
