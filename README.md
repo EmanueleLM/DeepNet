@@ -1,15 +1,15 @@
 # DeepNet
 Basic deep network to evaulate the state of the art optimizations in deep learning
 
-Thing implemented so far, 20/10/2017:
+Things implemented so far, 20/10/2017:
 
 -customizable deep net (specify with a line of code whole the net, from neurons to activations to loss)
 
--L1,L2,CrossEntropy losses and derivatives
+-L1,L2,CrossEntropy losses and derivatives. L1 and L2 have both their complex counterpart
 
 -sigmoid, relu, leakyrelu, tanh activations and derivatives (easy to extend at your own)
 
--works natively with complex numbers
+-works natively with complex numbers (caveat: note that the function you want to approximate must go from R (real numbers) to C (complex) )
 
 -tested with 8x8 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98% accuracy reached)
 
