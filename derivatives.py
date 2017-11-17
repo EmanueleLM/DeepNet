@@ -18,23 +18,25 @@ import numpy as np
 
 # derivative of Y wrt the exit variable for the L2 loss function
 # since we use the function (T-Y)^2, we obtain 2(T-Y) as derivative
-# please note that this one holds if the function that our net is evaluating is from Real to Complex numbers
-#   otherwise in all non-trivial cases the conjugate of a complex-differentiable function is not 
-#   complex-differentiable itself 
+# please note that this one holds it returns a numpy array of size (2,1) since we have two different derivatives for each part
+#   (real, imaginary) of the loss, and each of them must be multiplied to different factors according the the chain rule 
 def dYL2(Y, T):
     if Y.dtype == 'complex' or Y.dtype == 'complex64':
-        return -2*np.real(np.add(T, -Y)); 
+        dL_dYr = 2*(np.real(Y)-np.real(T)); # dLoss/dYr
+        dL_dYi = 2*(np.imag(Y)-np.imag(T)); # dLoss/dYi
+        return np.array([dL_dYr, dL_dYi]).reshape(2,1); 
     else:
         return 2*np.add(Y, -T);
 
 # derivative of Y wrt the exit variable for the L1 loss function
 # which is basically the signum of the difference between T and Y (that's why in regression a lot of weights are zero)
-# please note that this one holds if the function that our net is evaluating is from Real to Complex numbers
-#   otherwise in all non-trivial cases the conjugate of a complex-differentiable function is not 
-#   complex-differentiable itself
+# please note that this one holds it returns a numpy array of size (2,1) since we have two different derivatives for each part
+#   (real, imaginary) of the loss, and each of them must be multiplied to different factors according the the chain rule
 def dYL1(Y, T):
     if Y.dtype == 'complex' or Y.dtype == 'complex64':
-        return -np.real(np.add(T, -Y))/(np.sqrt(np.multiply(np.add(T, -Y),np.conjugate(np.add(T, -Y)))));
+        dL_dYr = 2*(np.real(Y)-np.real(T)); # dLoss/dYr
+        dL_dYi = 2*(np.imag(Y)-np.imag(T)); # dLoss/dYi
+        return np.array([dL_dYr, dL_dYi]).reshape(2,1);
     else:
         return np.sign(T-Y)*(-1);
     
