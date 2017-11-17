@@ -278,14 +278,14 @@ class DeepNet(object):
                 deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         # calculate the euclidean distance between deltaW and deltaL
         #print(deltaW.shape, deltaL.shape);
-        distance = np.sqrt(np.sum(((np.absolute(np.power(deltaW, 2) - np.power(deltaL, 2))))))/np.sqrt(np.sum(np.absolute(np.power(deltaW, 2)))); # evaluate the distance between the two vectors using the l2 norm
+        distance = np.linalg.norm(deltaL - deltaW)/np.linalg.norm(deltaL); # zero valued deltaL (i.e. denominator)
         return distance;
           
     
 """ Test part """
 # create a toy dataset
-X = da.randomComplexData(1000, 3);
-Y = da.randomComplexData(1000, 2);
+X = da.randomData(1000, 3);
+Y = da.randomBinaryData(1000, 2);
 #for n in range(X.shape[1]):
 #    Y[n] = np.sum(X[:,n]);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
@@ -304,14 +304,13 @@ Y = da.randomComplexData(1000, 2);
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(3, np.array([[4, "sigmoid"], [2, "sigmoid"]]), "L1"); # create the net
+net = DeepNet(3, np.array([[40, "tanh"], [20, "sigmoid"], [2, "sigmoid"]]), "L1"); # create the net
 ##
 # initialize the weights (the way you can initialize them are specified in weights_dict)
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
-    net.setWeights(we.complexWeights(net.W[i]), i);
     net.setBias(weights_dict['lecun'](net.Bias[i]), i);
-    net.setBias(we.complexWeights(net.Bias[i]), i);
+
 ##    
 #print("\nInitial weights and biases: \n", net.W, net.Bias);
 for n in range(X.shape[1]):
