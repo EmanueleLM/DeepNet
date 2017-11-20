@@ -38,7 +38,7 @@ def dYL1(Y, T):
         dL_dYi = 2*(np.imag(Y)-np.imag(T)); # dLoss/dYi
         return np.array([dL_dYr, dL_dYi]).reshape(2,1);
     else:
-        return np.sign(T-Y)*(-1);
+        return -np.sign(T-Y);
     
 # derivative of Y wrt the exit variable for the Cross Entropy loss function  
 def dYCrossEntropy(Y, T):
@@ -70,3 +70,13 @@ def dLeakyRelu(Z):
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dTanh(Z):
     return np.multiply((1-Z),(1+Z));
+
+# (partial) derivative of an exponential fucntion wrt variable Z
+# the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
+def dExp(Z):
+    return Z;
+
+# (partial) derivative of an linear fucntion wrt variables Z, W, b
+# the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
+def dLinear(Z):
+    return np.ones(Z.shape);

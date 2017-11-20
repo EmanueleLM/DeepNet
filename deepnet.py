@@ -23,7 +23,7 @@ import data as da
 #   define a function in activations.py (imported let's say as act), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": act.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu};
+activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "leakyrelu": act.leakyRelu, "exp": act.exp, "linear": act.linear};
 
 # the same method is employed for the choice of the loss function
 # Use this struct in this way: 
@@ -37,7 +37,7 @@ loss_dict = {"L1": ls.lossL1, "L2":ls.lossL2, "CrossEntropy": ls.lossCrossEntrop
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": de.dLeakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh};
+derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntropy, "relu": de.dRelu, "leakyrelu": de.dLeakyRelu,"sigmoid": de.dSigmoid, "tanh": de.dTanh, "exp": de.dExp, "linear": de.dLinear};
 
 # the same method is employed for the choice of the weights' initialization
 # Use this struct in this way: 
@@ -62,7 +62,7 @@ class DeepNet(object):
         self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = .1; # default learning rate for each iteration phase
+        self.learning_rate = 1e-3; # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
@@ -143,8 +143,7 @@ class DeepNet(object):
     # returns
     #   the matrix of the activations (even one element for example in single output nn)
     def activation(self, X, layer):
-        Z = np.dot(self.W[layer].T,X) + self.Bias[layer]; # activate (linearly) the input
-        return activations_dict[self.activations[layer]](Z); # activate the activation function of each layer using the vocabulary defined at the beginning            
+        return activations_dict[self.activations[layer]](self.W[layer], X, self.Bias[layer]); # activate the activation function of each layer using the vocabulary defined at the beginning            
     
     # perform activation truncated to a given layer
     # please note that for a L layers nn, we will have L activations Z(1), .., Z(4)
@@ -184,7 +183,7 @@ class DeepNet(object):
     #   the expected output (also as column vector)
     # returns
     #   dW, dB: the weights/biases updates at this step
-    def backpropagation(self, X, T):  
+    def backpropagation(self, X, T, complex=False):  
         dW = list(); # list of deltas that are used to calculate weights' update
         dB = list(); # array of deltas that are used to calculate biases' update
         y_hat = self.netActivation(X); # prediction of the network
@@ -251,7 +250,7 @@ class DeepNet(object):
     #   T: prediction (we are in a supervised scenario) 'label' for the given input
     # returns:
     #   the distance between the delta weights/biases vector and the derivative of the loss wrt all the parameters of the net
-    def checkGradient(self, dW, dB, X, Y, T):
+    def checkGradient(self, dW, dB, X, Y, T, complex=False):
         epsilon = 10**-3; # the epsioln we use to calculate dL/dv manually
         deltaW = np.array([]); # contains all the weights' update (calculated in backprop phase)
         deltaL = np.array([]); # contains all the derivatives of the loss function wrt a single parameter of the net, evaluated in a specific point (X,Y,T,W \setminus v,v)
@@ -284,8 +283,8 @@ class DeepNet(object):
     
 """ Test part """
 # create a toy dataset
-X = da.randomData(1000, 3);
-Y = da.randomBinaryData(1000, 2);
+X = da.randomData(1000, 64);
+Y = da.randomBinaryData(1000, 10);
 #for n in range(X.shape[1]):
 #    Y[n] = np.sum(X[:,n]);
 #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
@@ -304,14 +303,14 @@ Y = da.randomBinaryData(1000, 2);
 #    we want as loss the L1 (lasso)
 #    we just specify:
 #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(3, np.array([[40, "tanh"], [20, "sigmoid"], [2, "sigmoid"]]), "L1"); # create the net
+net = DeepNet(64, np.array([[10, "sigmoid"], [10, "linear"], [10, "exp"]]), "L2"); # create the net
 ##
 # initialize the weights (the way you can initialize them are specified in weights_dict)
 for i in range(len(net.W)):
     net.setWeights(weights_dict['lecun'](net.W[i]), i);
     net.setBias(weights_dict['lecun'](net.Bias[i]), i);
 
-##    
+#    
 #print("\nInitial weights and biases: \n", net.W, net.Bias);
 for n in range(X.shape[1]):
     net.backpropagation(X[:,n], Y[:,n]);
@@ -319,3 +318,5 @@ for n in range(X.shape[1]):
 ##print("\nFinal weights and biases: \n", net.W, net.Bias);
 #for i in range(20):
 #    print(net.netActivation(X[:,i]), Y[:,i]);
+#for i in range(len(net.W)): #initialize the weights
+#    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
