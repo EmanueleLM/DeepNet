@@ -14,10 +14,10 @@ Things implemented so far, 05/11/2017:
 
 TODO (in order of importance to me):
 
+-integrate with a genetic algorithm that finds out the most suitable net for a given problem
+
 -works natively with complex functions
 
 -test against some difficult problem
 
 -implement a good way to manipulate data (data.py is not good)
-
--integrate with a genetic algorithm that finds out the most suitable net for a given problem
