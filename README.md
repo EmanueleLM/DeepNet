@@ -7,7 +7,7 @@ Things implemented so far, 05/11/2017:
 
 -L1,L2,CrossEntropy losses and derivatives.
 
--sigmoid, relu, leakyrelu, tanh activations and derivatives (easy to extend at your own)
+-sigmoid, relu, leakyrelu, tanh, linear activations and derivatives (easy to extend at your own)
 
 -tested with 8x8/28x28 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98%/95% accuracy reached)
 
