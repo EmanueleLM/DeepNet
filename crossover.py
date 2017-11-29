@@ -19,24 +19,17 @@ import deepnet as dn
 #   net2, the second net (DeepNet object)
 #   p, the probability that the crossover happens (this one is usually much bigger than the mutation  probability, e.g. 50%)
 def onePointCrossover(net1, net2, p):
-    # scelgo a 'random' il punto di split
-    # incrocio le due prime parti con le due seconde
-    # aggiusto i pesi e i bias (avrò ragionevolmente delle dimensioni che mismatchano)
+    # if we have two layers for both the net, we cannot mix them in a consistent way
     if net1.activations.shape[0] == net2.activations.shape[0] == 2:
-        return; # if we have two layers for both the net, we cannot mix them in a consistent way
+        return; 
+    # choose the cut point for both the networks, in this case we assume that half is a good split point for a one point crossover    
     cut_point = (np.ceil(net1.activations.shape[0]/2).astype('int'), np.ceil(net2.activations.shape[0]/2).astype('int'));
-    layers1_new = np.array([[net1.W[i].shape[0], net1.activations[i]] for i in range(cut_point[0])]);
-    layers1_new = np.append(layers1_new,  np.array([[net2.W[j].shape[0], net2.activations[j]] for j in range(cut_point[1], net2.activations.shape[0])]));
-    
-    layers2_new = np.array([[net2.W[i].shape[0], net2.activations[i]] for i in range(cut_point[1])]);
-    layers2_new = np.append(layers2_new,  np.array([[net1.W[j].shape[0], net1.activations[j]] for j in range(cut_point[0], net1.activations.shape[0])]));
-    
-    net1 = dn.DeepNet(net1.W[0].shape[0], layers1_new.reshape(int(layers1_new.shape[0]/2), 2), net1.loss);
-    net2 = dn.DeepNet(net2.W[0].shape[0], layers2_new.reshape(int(layers2_new.shape[0]/2), 2), net2.loss);
-    
-    print(net1.activations, cut_point[0]);
-    print(net2.activations, cut_point[1]);
-    print(layers1_new, layers2_new); 
-    
-    
-    
+    # define the structure that is used to create the first net's layers as a composition of the first half of the first net plus the second half of the second
+    layer1 = np.array([[net1.W[i].shape[1], net1.activations[i]] for i in range(cut_point[0])]);
+    layer1 = np.append(layer1, np.array([[net2.W[i].shape[1], net2.activations[i]] for i in range(cut_point[1], net2.activations.shape[0])]));
+    # define the structure that is used to create the second net's layers as a composition of the first half of the second net plus the first half of the second
+    layer2 = np.array([[net2.W[i].shape[1], net2.activations[i]] for i in range(cut_point[1])]);
+    layer2 = np.append(layer2, np.array([[net1.W[i].shape[1], net1.activations[i]] for i in range(cut_point[0], net1.activations.shape[0])]));
+    # create the nets invoking the DeepNet module's __init__    
+    net1 = dn.DeepNet(net1.W[0].shape[0], layer1.reshape(int(layer1.shape[0]/2), 2), net1.loss);
+    net2 = dn.DeepNet(net2.W[0].shape[0], layer2.reshape(int(layer2.shape[0]/2), 2), net2.loss);    
