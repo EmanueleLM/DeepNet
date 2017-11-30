@@ -55,7 +55,7 @@ weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun"
 #      loss: the loss function selected for the backpropagation phase
 # =============================================================================
 class DeepNet(object):
-    def __init__(self, input_size, layers, loss):
+    def __init__(self, input_size, layers, loss, verbose=False):
         self.W = list(); # list that contains all the weights in the net (we use a list and np.array for each matrix of weights, for efficiency reasons)
         self.W.append(np.array(np.zeros([input_size, np.int(layers[0][0])]))); # append the first set of weights
         self.Bias = list(); # list that contains all the biases
@@ -71,8 +71,9 @@ class DeepNet(object):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
             self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
-        print("\nNetwork created succesfully!")
-        self.explainNet();
+        if verbose:
+            print("\nNetwork created succesfully!");
+            self.explainNet();
         
     # getter and setters for the net elements
     # Setters:
@@ -211,7 +212,7 @@ class DeepNet(object):
         dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
         dB = dB[::-1];
         #print(dW, "\n\n", dB);
-        print("Distance between dL/dv and dW.dB, using L2 norm, is ", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)
+        #print("Distance between dL/dv and dW.dB, using L2 norm, is ", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)
         #print(dW, dB)               
         self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
         return dW, dB;
@@ -278,45 +279,104 @@ class DeepNet(object):
         # calculate the euclidean distance between deltaW and deltaL
         #print(deltaW.shape, deltaL.shape);
         distance = np.linalg.norm(deltaL - deltaW)/np.linalg.norm(deltaL); # zero valued deltaL (i.e. denominator)
-        return distance;
-          
+        return distance;  
     
+    # function that returns the total number of parameters in the net as sum of the number of weights plus
+    # the number of biases
+    # returns
+    #   params, the number of parameters in of the net
+    def numberOfParameters(self):      
+        params = 0;
+        for w in self.W:
+            params += w.shape[0]*w.shape[1];
+        for b in self.Bias:
+            params += b.shape[0];
+        return params
+        
 """ Test part """
-# create a toy dataset
-X = da.randomData(1000, 64);
-Y = da.randomBinaryData(1000, 10);
-#for n in range(X.shape[1]):
-#    Y[n] = np.sum(X[:,n]);
-#X = da.normalizeData(X); # normalize the input (except for the prediction labels)
-
-# in order to create a net, just specify those few things
-#   net = DeepNet(d, np.array([[neurons, act]^(+)]), loss))
-#   d is the dimension of the input (x \in R^d for example)
-#   [neurons, act]^(+) this is a regexp that indicated that we want at least a layer (of at least one neuron, the output in that case)
-#       neurons is a integer that indicates the number of neurons in that layer
-#       act is a string that indicates the kind of activation (all of them are displayed in the activations_dict variable on top of this file)
-#       loss is a stirng that indicates which loss function we use (all of them are displayed in the loss_dict on the top of this file)
-#
-# let's make an example:
-#    we want to create a 4 layers deep net with all relu in the hidden layers and in the last layer a 5 neurons sigmoid
-#    each input has dimension 10, and each hidden layer has respectively 15, 45, 35, 20 hidden neurons
-#    we want as loss the L1 (lasso)
-#    we just specify:
-#    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-net = DeepNet(64, np.array([[10, "sigmoid"], [10, "linear"], [10, "exp"]]), "L2"); # create the net
-##
-# initialize the weights (the way you can initialize them are specified in weights_dict)
-for i in range(len(net.W)):
-    net.setWeights(weights_dict['lecun'](net.W[i]), i);
-    net.setBias(weights_dict['lecun'](net.Bias[i]), i);
-
-#    
-#print("\nInitial weights and biases: \n", net.W, net.Bias);
-for n in range(X.shape[1]):
-    net.backpropagation(X[:,n], Y[:,n]);
-
-##print("\nFinal weights and biases: \n", net.W, net.Bias);
-#for i in range(20):
-#    print(net.netActivation(X[:,i]), Y[:,i]);
-#for i in range(len(net.W)): #initialize the weights
-#    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
+verbose = True;
+if verbose:
+    # create a toy dataset
+    # X = da.randomData(1000, 64);
+    # Y = da.randomBinaryData(1000, 10);
+    #for n in range(X.shape[1]):
+    #    Y[n] = np.sum(X[:,n]);
+    #X = da.normalizeData(X); # normalize the input (except for the prediction labels)
+    
+    # in order to create a net, just specify those few things
+    #   net = DeepNet(d, np.array([[neurons, act]^(+)]), loss))
+    #   d is the dimension of the input (x \in R^d for example)
+    #   [neurons, act]^(+) this is a regexp that indicated that we want at least a layer (of at least one neuron, the output in that case)
+    #       neurons is a integer that indicates the number of neurons in that layer
+    #       act is a string that indicates the kind of activation (all of them are displayed in the activations_dict variable on top of this file)
+    #       loss is a stirng that indicates which loss function we use (all of them are displayed in the loss_dict on the top of this file)
+    #
+    # let's make an example:
+    #    we want to create a 4 layers deep net with all relu in the hidden layers and in the last layer a 5 neurons sigmoid
+    #    each input has dimension 10, and each hidden layer has respectively 15, 45, 35 hidden neurons
+    #    we want as loss the L1 (lasso)
+    #    we just specify:
+    #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
+    net = DeepNet(64, np.array([[50, "relu"], [10, "relu"]]), "L2", True); # create the net
+    ##
+    # initialize the weights (the way you can initialize them are specified in weights_dict)
+#    for i in range(len(net.W)):
+#        net.setWeights(weights_dict['lecun'](net.W[i]), i);
+#        net.setBias(weights_dict['lecun'](net.Bias[i]), i);
+    
+    #    
+    #print("\nInitial weights and biases: \n", net.W, net.Bias);
+#    for n in range(X.shape[1]):
+#        net.backpropagation(X[:,n], Y[:,n]);
+    
+    ##print("\nFinal weights and biases: \n", net.W, net.Bias);
+    #for i in range(20):
+    #    print(net.netActivation(X[:,i]), Y[:,i]);
+    #for i in range(len(net.W)): #initialize the weights
+    #    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
+    
+    for i in range(len(net.W)): #initialize the weights
+        net.setWeights(weights_dict['lecun'](net.W[i]), i); 
+    import utils_digit_recognition as drec
+    train_percentage = 60; # percentage of the dataset used for training
+    validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
+    digits = drec.load_digits(); # import the dataset
+    images, targets = drec.unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
+    train, test = drec.dataSplit(images, train_percentage);# split train adn test
+    train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
+    validation, test = drec.dataSplit(test, validation_percentage);
+    validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
+    train_Y = drec.binarization(train_Y); # binarize both the train and test labels
+    test_Y = drec.binarization(test_Y); # ..
+    validation_Y = drec.binarization(validation_Y);    
+    X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
+    Y = train_Y;    
+    X = drec.normalizeData(X);
+    X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
+    Y_test = test_Y;    
+    X_validation = validation.reshape(validation.shape[0], validation.shape[1]*validation.shape[2]).T;
+    Y_validation = validation_Y;
+    """ Train with full batch (size of the batch equals to the size of the dataset) """
+    epochs = 3;
+    validation_error = 1; # validation stop metric, initially the error is everywhere
+    validation_size = X_validation.shape[1];
+    for e in range(epochs):
+        #print((epochs-e)," epochs left");
+        for n in range(X.shape[1]):
+            net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
+            number_of_errors_validation = 0;
+        for n in range(X_validation.shape[1]):
+            if np.argmax(net.netActivation(X_validation[:,n].reshape(64,1))) != np.argmax(Y_validation[n].reshape(10,1)):
+                number_of_errors_validation += 1;
+        if float(number_of_errors_validation/validation_size) > validation_error:
+            break;
+        else:
+            validation_error = number_of_errors_validation/validation_size;
+            #print("validation error: ", validation_error);
+    """ test how much we are precise in our prediction """
+    number_of_errors = 0; # total number of errors on the test set
+    test_size = X_test.shape[1];
+    for n in range(X_test.shape[1]):
+        if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
+            number_of_errors += 1;
+    print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
