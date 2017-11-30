@@ -17,7 +17,7 @@ from operator import itemgetter # used to sort the vector of population <net, fi
 #    population, the population as tuples of <net, fitness>
 #    ordered, boolean (that is considered True if not given) that means that the population is already ordered by its fitness in a descending order (i.e. the first net is the 'best' one)
 # returns:
-#   a couple of integers (in the range of the population size, which is passed by its reference) that inidcates the two nets to be coupled with crossover
+#   (id1, id2), a couple of integers (in the range of the population size, which is passed by its reference) that inidcates the two nets to be coupled with crossover
 # how it is implemented:
 #   take a random number p: 
 #       check wheter the number is greater than .5 (this happens 50% of the times)
@@ -51,6 +51,6 @@ def rankSelection(population, ordered=True):
 # utility that orders the population of <net, fitness> in descending/ascendig order wrt the fitness itself
 # takes as input:
 #        population, the population as tuples of <net, fitness>
-#        desc, boolean (that is considered True if not given) that means that the resulting population will be in descending order, otherwise ascending
-def sortByFitness(population, desc=True):
-    return sorted(population, key = itemgetter(1), reverse=True);
+#        desc, boolean (that is considered False if not given) that means that the resulting population will be in descending order, otherwise ascending
+def sortByFitness(population, desc=False):
+    return sorted(population, key = itemgetter(1), reverse=False);
