@@ -9,14 +9,16 @@ Things implemented so far, 30/11/2017:
 
 - sigmoid, relu, leakyrelu, tanh, linear activations and derivatives: easy to extend at your own;
 
-- genetic algorithm to find a network with good balance between size and accuracy;
+- genetic algorithm to find a network with balance between size and accuracy;
 
 - tested with 8x8/28x28 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98% accuracy).
 
 
 TODO (in order of importance to me):
 
-- extend the genetic algorithms' functionalities (new crossover/mutation/selection methods)
+- extend the genetic algorithms
+  - robusteness of the elite by checking it from time to time;
+  - new crossover/mutation/selection methods
 
 - works natively with complex functions
 
