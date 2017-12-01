@@ -17,8 +17,9 @@ Things implemented so far, 30/11/2017:
 TODO (in order of importance to me):
 
 - extend the genetic algorithms
+  - learning rate transfer (crossover/mutation): this is **the** hot point;
   - robusteness of the elite by checking it from time to time;
-  - new crossover/mutation/selection methods
+  - new crossover/mutation/selection methods.
 
 - make it work natively with complex functions
 
