@@ -11,7 +11,7 @@ Things implemented so far, 30/11/2017:
 
 - genetic algorithm to find a network with balance between size and accuracy;
 
-- tested with 8x8/28x28 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98% accuracy).
+- tested with 8x8/28x28 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98%\96% accuracy).
 
 
 TODO (in order of importance to me):
@@ -20,7 +20,7 @@ TODO (in order of importance to me):
   - robusteness of the elite by checking it from time to time;
   - new crossover/mutation/selection methods
 
-- works natively with complex functions
+- make it work natively with complex functions
 
 - test against some difficult problem
 
