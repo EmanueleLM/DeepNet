@@ -53,7 +53,10 @@ class Mask(object):
                 # process the two parts distinctly
                 part1 = self.parseRange(part1, self.W[i].shape[0]); # from the first chunk return the range between whom we want to change the consider the connections of the incoming layer, e.g. '3:5' -> 'range(3,5)'
                 part2 = self.parseRange(part2, self.W[i].shape[1]); # really the same as above, but wrt the other layer
-                self.W[i][exec(part1):exec(part2)] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
+                part1 = eval(part1);
+                part2 = eval(part2);
+                print(min(part1),max(part1)+1,min(part2),max(part2)+1)
+                self.W[i][min(part1)-1:max(part1)+1,min(part2)-1:max(part2)+1] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
             
     # this function parses the input of the 'user' that wants to define a non-fully connected neural net
     def createMask(self, net_topology):
@@ -81,7 +84,7 @@ class Mask(object):
         # case ':b'
         elif re.match(':(\d+)', chunk):
             r2 = re.match(':(\d+)', chunk).group(1);
-            r1 = 0;
+            r1 = 1;
         # case 'a'
         elif re.match('(\d+)', chunk):
             r1 = re.match('(\d+)', chunk).group(1);
