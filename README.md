@@ -23,7 +23,7 @@ TODO (in order of importance to me):
 - extend the genetic algorithms:
   - crossover between non-fully connected nets;
   - learning rate transfer (crossover/mutation): this is **the** hot point;
-  - robusteness of the elite by checking it from time to time;
+  - robusteness of the elite by checking it from time to time: tournament among the elements of the elite on the misclassified examples;
   - new crossover/mutation/selection methods.;
 
 - make it work natively with complex functions;
