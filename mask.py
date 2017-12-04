@@ -10,9 +10,8 @@ In this sense we just use some binary 'masks' that are applied on the weights/bi
  turns off the connections on that layer.
 """
 
-import deepnet as dp
-import re # regexp
 import numpy as np
+import re # regexp
 
 # This class identifies the connections that each layer has i.e. the topology of the net itself
 #  we use a human way to define the connections, and a parser to obtain the informations to pass from the
@@ -52,8 +51,8 @@ class Mask(object):
             for j in range(len(self.layers[i])):
                 part1, part2 = re.split('\|', self.layers[i][j]); # split the range in two parts, e.g. '2:3|4:10' -> '2:3', '4:10'
                 # process the two parts distinctly
-                part1 = self.parseRange(part1); # from the first chunk return the range between whom we want to change the consider the connections of the incoming layer, e.g. '3:5' -> 'range(3,5)'
-                part2 = self.parseRange(part2); # really the same as above, but wrt the other layer
+                part1 = self.parseRange(part1, self.W[i].shape[0]); # from the first chunk return the range between whom we want to change the consider the connections of the incoming layer, e.g. '3:5' -> 'range(3,5)'
+                part2 = self.parseRange(part2, self.W[i].shape[1]); # really the same as above, but wrt the other layer
                 self.W[i][exec(part1):exec(part2)] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
             
     # this function parses the input of the 'user' that wants to define a non-fully connected neural net
@@ -70,16 +69,27 @@ class Mask(object):
         return connection.replace('|', ',');
     
     # this function is used to parse the single connection range, mainly because something like 'a:b' is not allowed in eval()
-    # so we just take 'a:b' (which can be also just 'a') and transform it in a range that can be processed by eval 
-    def parseRange(self, chunk):
-        if re.match('(\d+):(\d+)', chunk):
+    #  so we just take 'a:b' (which can be also just 'a') and transform it in a range that can be processed by eval 
+    # takes as input:
+    #   chunk, which is the string that indicated the range we wanto to specify the topology of, e.g. 'a:b'
+    #   layer, which is the integer that indicates the shape of layer of the net we are dealing with and is used when the second term in the
+    #          expression is not specified and we have something like 'a:' (which is a shortcut of 'a:tot_num_parameters')
+    def parseRange(self, chunk, layer_shape):
+        # case 'a:b'
+        if re.match('(\d+):(\d+)', chunk): 
             r1, r2 = re.match('(\d+):(\d+)', chunk).group(1,2);
+        # case ':b'
         elif re.match(':(\d+)', chunk):
             r2 = re.match(':(\d+)', chunk).group(1);
             r1 = 0;
+        # case 'a'
         elif re.match('(\d+)', chunk):
             r1 = re.match('(\d+)', chunk).group(1);
             r2 = int(r1)+1;
+        # case 'a:'
+        elif re.match('(\d+):', chunk):
+            r1 = re.match('(\d+)', chunk).group(1);
+            r2 = layer_shape;
         else:
             print('error while parsing string', chunk);
             return;
@@ -88,8 +98,8 @@ class Mask(object):
 
         
 """ Test """
-verbose = True;
+verbose = False;
 if verbose:
     example_str = 'layer(1): 1:5|1:10, 6:10|11:15 layer(2): 1:3|1:2, 4|3:5, 5:15|6:8';
+    net = dn.DeepNet(10, np.array([[15, "tanh"], [8, "leakyrelu"]]), "L2", True); # create the net
     mask = Mask(net, example_str);
-    
