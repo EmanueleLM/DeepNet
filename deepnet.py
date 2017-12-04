@@ -63,7 +63,7 @@ class DeepNet(object):
         self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 2e-3; # default learning rate for each iteration phase
+        self.learning_rate = 2e-4; # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
@@ -297,17 +297,17 @@ class DeepNet(object):
         deltaW = np.array([]); # contains all the weights' update (calculated in backprop phase)
         deltaL = np.array([]); # contains all the derivatives of the loss function wrt a single parameter of the net, evaluated in a specific point (X,Y,T,W \setminus v,v)
         for i in range(len(self.W)): # flatten the list of weights/biases
-            deltaW = np.append(deltaW, dW[i].flatten());
+            deltaW = np.append(deltaW, dW[i].flatten() if self.fully_connected is True else np.multiply(dW[i], self.mask[i]).flatten());
         for i in range(len(self.Bias)):
             deltaW = np.append(deltaW, dB[i].flatten());            
         for n in range(len(self.W)): # evaluate the loss with a small perturbation of each parameter of the net, one by one
             for i in range(self.W[n].shape[0]):
                 for j in range(self.W[n].shape[1]):
-                    self.W[n][i][j] += epsilon;                   
+                    self.W[n][i][j] += epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);                   
                     partialL_plus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
-                    self.W[n][i][j] -= 2*epsilon;
+                    self.W[n][i][j] -= 2*epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);
                     partialL_minus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
-                    self.W[n][i][j] += epsilon;
+                    self.W[n][i][j] += epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);
                     deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         for n in range(len(self.Bias)): # same with the biases vectors
             for j in range(len(self.Bias[n])):
@@ -359,6 +359,8 @@ if verbose:
     #    we just specify:
     #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
     net = DeepNet(64, np.array([[35, "tanh"], [10, "leakyrelu"]]), "L2", True); # create the net
+    # the first layer is divided in two regions connected, respectively, to each half of the second layer, while the second layer is fully connected to the output
+    #net.netTopology('layer(1): 1:32|1:32, 33:64|33:64 layer(2): :35|:10'); 
     ##
     # initialize the weights (the way you can initialize them are specified in weights_dict)
 #    for i in range(len(net.W)):
