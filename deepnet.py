@@ -9,13 +9,14 @@ Deep network learner with parameter tuning and all sort of optimizations
 The starting point is just a feed forward neural net where we add much more layers in depth.
 """
 
-import numpy as np
 import activations as act
-import loss as ls
-import derivatives as de
-import weights as we
 import copy as cp
+import derivatives as de
 import data as da
+import loss as ls
+import mask as ma
+import numpy as np
+import weights as we
 
 # we use a dictionary to handle each layer's activation function: we will need just to know the info contained in
 #   DeepNet.layers to invoke the right function!
@@ -62,11 +63,13 @@ class DeepNet(object):
         self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
         self.loss = loss;
-        self.learning_rate = 1e-3; # default learning rate for each iteration phase
+        self.learning_rate = 2e-3; # default learning rate for each iteration phase
         self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
         self.dB_old = np.zeros([layers.shape[0], 1]);
         self.momenutum_rate = 0.5; # default momentum rate for the moemntum weights update
+        self.fully_connected = True; # this boolean specify if the net has a fully connected topopolgy 
+        self.mask = list(); # list that contains the binary versions of the weights to tell whether a connection exists or not
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
@@ -101,6 +104,12 @@ class DeepNet(object):
     #   learning rate    
     def setLearningRate(self, a):
         self.learning_rate = a;
+    # fully connected
+    def setFullyConnected(self, fc):
+        self.fully_connected = fc;
+    # mask
+    def setMask(self, m):
+        self.mask = m;
     # 
     # Getters:
     #   weights
@@ -127,6 +136,12 @@ class DeepNet(object):
     #   learning rate    
     def getLearningRate(self):
         return self.learning_rate;
+    # fully connected
+    def getFullyConnected(self):
+        return self.fully_connected;
+    # mask
+    def getMask(self):
+        return self.mask;
             
     # function that explains the net: this means that it describes the network
     # in terms of input, layers and activation functions
@@ -137,6 +152,24 @@ class DeepNet(object):
         print("The loss function selected is ", self.loss);
         print("\n\n");
         
+    # string method
+    def __str__(self):
+        net_str = "Network id:"+hex(id(self));
+        net_str += "\nNumber of layer(s):"+str(len(self.W));
+        net_str += "\nNumber of input(s) "+str(self.W[0].shape[0]);
+        for i in range(len(self.W)):
+            net_str += "\nLayer #"+str(i+1)+": "+str(self.W[i].shape[1])+" neuron(s), "+str(self.activations[i])+" as activation";
+        net_str += "\nLoss: "+str(self.loss);
+        return net_str;
+    
+    # functions that specify a topology for the net, which is different from a fully connected nn
+    # takes as input:
+    #   mask, which is a string that is used to specify the topology of the net
+    #         take a look at mask.py module in order to understand the (easy) syntax
+    def netTopology(self, topology):
+        self.mask = ma.Mask(self, topology).W;
+        self.fully_connected = False; # this boolean specifies if the net has a fully connected topology (in this sense if it's not so the backprop and forward change a lot)
+        
     # function that activates a single, given layer and, based on its activation function, returns the desired output
     # takes as input
     #   the input X as a vector
@@ -144,8 +177,10 @@ class DeepNet(object):
     # returns
     #   the matrix of the activations (even one element for example in single output nn)
     def activation(self, X, layer):
-        return activations_dict[self.activations[layer]](self.W[layer], X, self.Bias[layer]); # activate the activation function of each layer using the vocabulary defined at the beginning            
-    
+        if self.fully_connected == True:
+            return activations_dict[self.activations[layer]](self.W[layer], X, self.Bias[layer]); # activate the activation function of each layer using the vocabulary defined at the beginning            
+        else:
+            return activations_dict[self.activations[layer]](np.multiply(self.W[layer], self.mask[layer]), X, self.Bias[layer]); # activation with non fully connected topology
     # perform activation truncated to a given layer
     # please note that for a L layers nn, we will have L activations Z(1), .., Z(4)
     #   whose dimension is equal to [m,1], where m is the number of neurons the layer ends with 
@@ -213,8 +248,14 @@ class DeepNet(object):
         dB = dB[::-1];
         #print(dW, "\n\n", dB);
         #print("Distance between dL/dv and dW.dB, using L2 norm, is ", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)
-        #print(dW, dB)               
-        self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        #print(dW, dB)        
+        if self.fully_connected == True:
+            self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        # backprop with a non fully connected topology
+        else:
+            for i in range(len(dW)):
+                dW[i] = np.multiply(dW[i], self.mask[i]);
+            self.weightsUpdate(dW, dB);
         return dW, dB;
         
     # function that updates the weights of the net
@@ -317,7 +358,7 @@ if verbose:
     #    we want as loss the L1 (lasso)
     #    we just specify:
     #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-    net = DeepNet(64, np.array([[50, "relu"], [10, "relu"]]), "L2", True); # create the net
+    net = DeepNet(64, np.array([[35, "tanh"], [10, "leakyrelu"]]), "L2", True); # create the net
     ##
     # initialize the weights (the way you can initialize them are specified in weights_dict)
 #    for i in range(len(net.W)):
@@ -334,10 +375,9 @@ if verbose:
     #    print(net.netActivation(X[:,i]), Y[:,i]);
     #for i in range(len(net.W)): #initialize the weights
     #    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
-    
     for i in range(len(net.W)): #initialize the weights
         net.setWeights(weights_dict['lecun'](net.W[i]), i); 
-    import utils_digit_recognition as drec
+    import utils.utils_digit_recognition as drec
     train_percentage = 60; # percentage of the dataset used for training
     validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
     digits = drec.load_digits(); # import the dataset
@@ -348,20 +388,18 @@ if verbose:
     validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
     train_Y = drec.binarization(train_Y); # binarize both the train and test labels
     test_Y = drec.binarization(test_Y); # ..
-    validation_Y = drec.binarization(validation_Y);    
+    validation_Y = drec.binarization(validation_Y); # ..
     X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
-    Y = train_Y;    
+    Y = train_Y;
     X = drec.normalizeData(X);
     X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
-    Y_test = test_Y;    
+    Y_test = test_Y;
     X_validation = validation.reshape(validation.shape[0], validation.shape[1]*validation.shape[2]).T;
     Y_validation = validation_Y;
-    """ Train with full batch (size of the batch equals to the size of the dataset) """
-    epochs = 3;
+    epochs = 100;
     validation_error = 1; # validation stop metric, initially the error is everywhere
     validation_size = X_validation.shape[1];
     for e in range(epochs):
-        #print((epochs-e)," epochs left");
         for n in range(X.shape[1]):
             net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
             number_of_errors_validation = 0;
@@ -372,8 +410,6 @@ if verbose:
             break;
         else:
             validation_error = number_of_errors_validation/validation_size;
-            #print("validation error: ", validation_error);
-    """ test how much we are precise in our prediction """
     number_of_errors = 0; # total number of errors on the test set
     test_size = X_test.shape[1];
     for n in range(X_test.shape[1]):
