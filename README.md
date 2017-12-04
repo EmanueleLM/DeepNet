@@ -11,20 +11,22 @@ Things implemented so far, 30/11/2017:
 
 - genetic algorithm to find a network with balance between size and accuracy;
 
+- locally connected networks;
+
 - tested with 8x8/28x28 handrwritten digits in scikit-learn (few optimizations and hyperparameter tuning, 98%\96% accuracy).
 
 
 TODO (in order of importance to me):
 
-- locally connected networks
+- improve training of locally connected networks;
 
-- extend the genetic algorithms
+- extend the genetic algorithms:
   - learning rate transfer (crossover/mutation): this is **the** hot point;
   - robusteness of the elite by checking it from time to time;
-  - new crossover/mutation/selection methods.
+  - new crossover/mutation/selection methods.;
 
-- make it work natively with complex functions
+- make it work natively with complex functions;
 
-- test against some difficult problem
+- test against some difficult problem;
 
-- good way to manipulate data (data.py is not good)
+- good way to manipulate data (data.py is not good).
