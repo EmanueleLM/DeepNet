@@ -9,6 +9,7 @@ This module implements various crossover methods
 
 import numpy as np
 import deepnet as dn
+import copy as cp
 
 # classical one point crossover: takes the two nets and divide them in two parts
 # each first part is attached to the second part of the other net and we obtain two new nets
@@ -30,9 +31,23 @@ def onePointCrossover(net1, net2, p):
         layer1 = np.array([net2.W[0].shape[1], net2.activations[0], net1.W[1].shape[1], net1.activations[1]]);
         layer2 = np.array([net1.W[0].shape[1], net1.activations[0], net2.W[1].shape[1], net2.activations[1]]);
         temploss = net1.loss; # this one is used to prevent that the second net has the same loss function as the first one
-        net1 = dn.DeepNet(net1.W[0].shape[0], layer1.reshape(int(layer1.shape[0]/2), 2), net2.loss, False);
-        net2 = dn.DeepNet(net2.W[0].shape[0], layer2.reshape(int(layer2.shape[0]/2), 2), temploss, False);
+        # save the masks for the non fully connected topologies
+        if (net1.fully_connected is False) and (net2.fully_connected is False): 
+            mask1 = cp.deepcopy(net1.mask); # copy the mask of the first net (DeepNet __init__ destroys the mask components)
+            mask2 = cp.deepcopy(net2.mask); # copy the mask of the second net
+            net1 = dn.DeepNet(net1.W[0].shape[0], layer1.reshape(int(layer1.shape[0]/2), 2), net2.loss, verbose=False);
+            net2 = dn.DeepNet(net2.W[0].shape[0], layer2.reshape(int(layer2.shape[0]/2), 2), temploss, verbose=False);
+            net1.setMask(mask2); # set the mask of the first net equals to the mask of the second net (a swap..)
+            net2.setMask(mask1); # ..
+            net1.setFullyConnected(False); # remember to set that the new net is not fully connected (ok maybe we have to change the __init__ of DeepNet to make it automatic :/ )
+            net2.setFullyConnected(False); # ..
+        # fully connected topologies' case
+        else:
+            net1 = dn.DeepNet(net1.W[0].shape[0], layer1.reshape(int(layer1.shape[0]/2), 2), net2.loss, False);
+            net2 = dn.DeepNet(net2.W[0].shape[0], layer2.reshape(int(layer2.shape[0]/2), 2), temploss, False);
+    # case with two nets with numbers of layers different from 2, for both the nets    
     else: 
+        """ TODO: make this part works with topologies non fully connected with possibily more than one hidden layer: a 'bit' of work is required """
         # choose the cut point for both the networks, in this case we assume that half is a good split point for a one point crossover    
         cut_point = (np.ceil(net1.activations.shape[0]/2).astype('int'), np.ceil(net2.activations.shape[0]/2).astype('int'));
         # define the structure that is used to create the first net's layers as a composition of the first half of the first net plus the second half of the second
@@ -61,5 +76,3 @@ def onePointCrossover(net1, net2, p):
 #   net1, net2, the modified nets after the crossover
 def uniformCrossover(net1, net2, p):
     pass;    
-
-
