@@ -1,5 +1,5 @@
 ## DeepNet
-# Basic deep network to evaulate the state of the art optimizations in deep learning
+# Basic deep network to evaulate some optimizations technique in non-shallow architectures
 
 Things implemented so far, 05/12/2017:
 
