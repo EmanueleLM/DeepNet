@@ -50,8 +50,8 @@ def randomMutation(net, p):
                 net.Bias[l] = np.append(net.Bias[l], np.random.normal(mean_bias, var_bias, [new_neurons, 1]), axis=0);
                 # case of non fully connected net, insertion
                 if net.fully_connected is False:
-                    net.mask[l] = np.append(net.mask[l], np.random.normal(mean_first_layer, var_first_layer, [net.mask[l].shape[0], new_neurons]), axis=1);
-                    net.mask[l+1] = np.append(net.mask[l+1], np.random.normal(mean_second_layer, var_second_layer, [new_neurons, net.mask[l+1].shape[1]]), axis=0);
+                    net.mask[l] = np.append(net.mask[l], np.random.choice([0,1], size=[net.mask[l].shape[0], new_neurons], p=[1-net.connection_percentage, net.connection_percentage]), axis=1);
+                    net.mask[l+1] = np.append(net.mask[l+1], np.random.choice([0,1], size=[new_neurons, net.mask[l+1].shape[1]], p=[1-net.connection_percentage, net.connection_percentage]), axis=0);
             else:
                 net.W[l] = np.delete(net.W[l], range(np.abs(new_neurons)), axis=1); # remove the first new_neurons columns from the layer
                 net.W[l+1] = np.delete(net.W[l+1], range(np.abs(new_neurons)), axis=0); # remove the first new_neurons rows from the next leayer
