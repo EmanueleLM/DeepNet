@@ -19,7 +19,6 @@ TODO (in order of importance to me):
 - improve training of locally connected networks;
 
 - extend the genetic algorithms:
-  - crossover between non-fully connected nets with more than 2 hidden layers;
   - learning rate transfer (crossover/mutation): this is **the** hot point;
   - robusteness of the elite by checking it from time to time: tournament among the elements of the elite on the misclassified examples;
   - new crossover/mutation/selection methods.;
