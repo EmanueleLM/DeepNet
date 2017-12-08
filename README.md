@@ -41,5 +41,5 @@ We want to specify the topology of the net, in such a way that the input is conn
 - the rest of the inputs are fully connected to the rest of the neurons of the first hidden layer;
 - the rest of the net is fully connected (just to have few text to read in this tutorial, the way you connect the other layers is very the same as what I described above).
 ```python
-net.netTopology('layer(1): :5|:20, 6|21, 7|22, 8:10|23:35 layer(2): :35|:40 layer(3): :40|:5'); 
+net.netTopology('layer(1): :5|:20, 6|21, 7|22, 8:|23: layer(2): :|: layer(3): :|:'); 
 ```
