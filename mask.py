@@ -5,9 +5,9 @@ Created on Sat Dec  2 10:50:27 2017
 @author: Emanuele
 
 This module handles a particular object we could name 'connections handler': its aim is to specify
- how the net is connected, i particular we distinguish between fully connected and partially connected nets.
+ how the net is connected, in particular we distinguish between fully connected and partially connected nets.
 In this sense we just use some binary 'masks' that are applied on the weights/biases of the net and that
- turns off the connections on that layer.
+ turn off the connections on that layer.
 """
 
 import numpy as np
@@ -55,8 +55,7 @@ class Mask(object):
                 part2 = self.parseRange(part2, self.W[i].shape[1]); # really the same as above, but wrt the other layer
                 part1 = eval(part1);
                 part2 = eval(part2);
-                print(min(part1),max(part1)+1,min(part2),max(part2)+1)
-                self.W[i][min(part1)-1:max(part1)+1,min(part2)-1:max(part2)+1] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
+                self.W[i][min(part1)-1:max(part1),min(part2)-1:max(part2)] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
             
     # this function parses the input of the 'user' that wants to define a non-fully connected neural net
     def createMask(self, net_topology):
@@ -81,28 +80,31 @@ class Mask(object):
         # case 'a:b'
         if re.match('(\d+):(\d+)', chunk): 
             r1, r2 = re.match('(\d+):(\d+)', chunk).group(1,2);
+        # case 'a:'
+        elif re.match('(\d+):', chunk):
+            r1 = re.match('(\d+)', chunk).group(1);
+            r2 = layer_shape;
         # case ':b'
         elif re.match(':(\d+)', chunk):
             r2 = re.match(':(\d+)', chunk).group(1);
             r1 = 1;
         # case 'a'
         elif re.match('(\d+)', chunk):
-            r1 = re.match('(\d+)', chunk).group(1);
-            r2 = int(r1)+1;
-        # case 'a:'
-        elif re.match('(\d+):', chunk):
-            r1 = re.match('(\d+)', chunk).group(1);
-            r2 = layer_shape;
+            r2 = int(re.match('(\d+)', chunk).group(1));
+            r1 = int(r2);
         else:
             print('error while parsing string', chunk);
             return;
-        return 'range(int('+str(r1)+'), int('+str(r2)+'))';
-            
+        return '['+str(r1) + ',' + str(r2) +']';         
 
-        
 """ Test """
 verbose = False;
 if verbose:
-    example_str = 'layer(1): 1:5|1:10, 6:10|11:15 layer(2): 1:3|1:2, 4|3:5, 5:15|6:8';
-    net = dn.DeepNet(10, np.array([[15, "tanh"], [8, "leakyrelu"]]), "L2", True); # create the net
+    example_str = 'layer(1): 1|1, 2|2:3, 3|4:5 layer(2): 1:3|1:3, 4:5|4:6';
+    import deepnet as dn
+    net = dn.DeepNet(3, np.array([[5, "tanh"], [6, "linear"]]), "L2", True); # create the net
     mask = Mask(net, example_str);
+    net.fully_connected = False;
+    net.setMask(mask.W);
+    import deepplot.netplot as nep
+    nep.NetPlot(net);
