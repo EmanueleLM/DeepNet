@@ -32,7 +32,7 @@ exp in the second layer and a leakyrelu in the last layer (let's suppose its a g
 We will use the L2 error measure.
 We will have:
 ```python
-net = DeepNet(10, [[35, "sigmoid"], [40, "exp"], [5, "leakyrelu"]], "L2");
+net = dn.DeepNet(10, np.array([[35, "sigmoid"], [40, "exp"], [5, "leakyrelu"]]), "L2");
 ```
 
 We want to specify the topology of the net, in such a way that the input is connected in this way:
