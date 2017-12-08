@@ -74,24 +74,28 @@ class Mask(object):
     #  so we just take 'a:b' (which can be also just 'a') and transform it in a range that can be processed by eval 
     # takes as input:
     #   chunk, which is the string that indicated the range we wanto to specify the topology of, e.g. 'a:b'
-    #   layer, which is the integer that indicates the shape of layer of the net we are dealing with and is used when the second term in the
+    #   layer_shape, which is the integer that indicates the shape of layer of the net we are dealing with and is used when the second term in the
     #          expression is not specified and we have something like 'a:' (which is a shortcut of 'a:tot_num_parameters')
     def parseRange(self, chunk, layer_shape):
-        # case 'a:b'
+        # case 'a:b' (all the neruons from a-th to b-th, included)
         if re.match('(\d+):(\d+)', chunk): 
             r1, r2 = re.match('(\d+):(\d+)', chunk).group(1,2);
-        # case 'a:'
+        # case 'a:' (all the neurons from a-th to the end of the layer, included)
         elif re.match('(\d+):', chunk):
             r1 = re.match('(\d+)', chunk).group(1);
             r2 = layer_shape;
-        # case ':b'
+        # case ':b' (all the neurons from the first to the b-th, included)
         elif re.match(':(\d+)', chunk):
             r2 = re.match(':(\d+)', chunk).group(1);
             r1 = 1;
-        # case 'a'
+        # case 'a' (just the neuron a-th)
         elif re.match('(\d+)', chunk):
-            r2 = int(re.match('(\d+)', chunk).group(1));
+            r2 = re.match('(\d+)', chunk).group(1);
             r1 = int(r2);
+        # case ':' (all the neurons in the layer)
+        elif re.match(':', chunk):
+            r1 = 1;
+            r2 = layer_shape;
         else:
             print('error while parsing string', chunk);
             return;
@@ -100,7 +104,7 @@ class Mask(object):
 """ Test """
 verbose = False;
 if verbose:
-    example_str = 'layer(1): 1|1, 2|2:3, 3|4:5 layer(2): 1:3|1:3, 4:5|4:6';
+    example_str = 'layer(1): 1|1, 2|2:3, 3|4:5 layer(2): :|:';
     import deepnet as dn
     net = dn.DeepNet(3, np.array([[5, "tanh"], [6, "linear"]]), "L2", True); # create the net
     mask = Mask(net, example_str);
