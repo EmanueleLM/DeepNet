@@ -1,7 +1,7 @@
 ## DeepNet
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
-Things implemented so far, 05/12/2017:
+## Things implemented so far, 05/12/2017: ##
 
 - customizable deep net (specify with **one** line of code whole the net, from neurons to activations to loss);
   - all from backpropagation to check gradient routine is done by using just numpy
