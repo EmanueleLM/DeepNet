@@ -49,6 +49,4 @@ While deepplot.netplot provides a (simple and rudimental) way to visualize the n
 import deepplot.netplot as dep
 dep.NetPlot(net);
 ```
-
-And we get the image:
 ![GitHub Logo](/deepplot/images/plot_example.png)
