@@ -108,7 +108,9 @@ class NeuralNetwork():
         pyplot.xticks([]);
         pyplot.yticks([]);
         pyplot.axis('normal');
-        #pyplot.savefig('img.pdf', dpi=50); # eventually save the net on a file
+        pyplot.title('Output neurons');
+        pyplot.xlabel('Input');
+        pyplot.savefig('img.pdf', dpi=50); # eventually save the net on a file
         
 class NetPlot():
     def __init__(self, net):
