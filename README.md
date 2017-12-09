@@ -48,7 +48,6 @@ While deepplot.netplot provides a (simple and rudimental) way to visualize the n
 ```python
 import deepplot.netplot as dep
 dep.NetPlot(net);
-net.netTopology('layer(1): :5|:20, 6|21, 7|22, 8:|23: layer(2): :|: layer(3): :|:'); 
 ```
 
 And we get the image:
