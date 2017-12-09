@@ -51,4 +51,4 @@ dep.NetPlot(net);
 ```
 
 And we get the image:
-![GitHub Logo](/images/plot_example.png)
+![GitHub Logo](/deepplot/images/plot_example.png)
