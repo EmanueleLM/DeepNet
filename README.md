@@ -43,3 +43,13 @@ We want to specify the topology of the net, in such a way that the input is conn
 ```python
 net.netTopology('layer(1): :5|:20, 6|21, 7|22, 8:|23: layer(2): :|: layer(3): :|:'); 
 ```
+
+While deepplot.netplot provides a (simple and rudimental) way to visualize the net:
+```python
+import deepplot.netplot as dep
+dep.NetPlot(net);
+net.netTopology('layer(1): :5|:20, 6|21, 7|22, 8:|23: layer(2): :|: layer(3): :|:'); 
+```
+
+And we get the image:
+![GitHub Logo](/images/plot_example.png)
