@@ -12,7 +12,7 @@ This code is meant to give the opportunity to test your net against a letter rec
 
 Use this code just below the code on your deepnet.py (it should be done in another file indipendently importing
 the module, I don't have both the time and the will)
-"""
+""" 
 
 import utils_digit_recognition as drec
 import numpy as np
