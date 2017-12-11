@@ -22,6 +22,8 @@ TODO (in order of importance to me):
   - learning rate transfer (crossover/mutation): this is **the** hot point;
   - robusteness of the elite by checking it from time to time: tournament among the elements of the elite on the misclassified examples;
   - new crossover/mutation/selection methods.;
+ 
+- cythonize the code
 
 - make it work natively with complex functions (mainly for signal processing);
 
