@@ -60,5 +60,5 @@ eveolved_population, elite = evolvePopulation(population_size, epochs, input_siz
 ```
 That can be fastly invoked for a population of 20 nets of the same topology introducted before, through 15 epochs, as:
 ```python
-eveolved_population, elite = evolvePopulation(20, 15, 10, 5, "roulette", "one-point", "random");
+evolved_population, elite = evolvePopulation(20, 15, 10, 5, "roulette", "one-point", "random");
 ```
