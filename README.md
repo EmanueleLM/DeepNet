@@ -52,3 +52,9 @@ import deepplot.netplot as dep
 dep.NetPlot(net);
 ```
 ![GitHub Logo](/deepplot/images/plot_example.png)
+
+If you want to evolve a population of nets according to a genetic algorithm strategy, use the functions in netgenerator.py.
+The best strategy is to look at netgenerator.py last part, that gives you a sketch on how to use all the ga routines in the best way. Anyway there's a fast function to do that, with some parameters that are set by default (but can be changed in invokation phase), here's the syntax:
+```python
+eveolved_population, elite = evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
+```
