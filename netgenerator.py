@@ -110,7 +110,7 @@ def validateNet(net, misclassified=False):
     Y_test = test_Y;
     X_validation = validation.reshape(validation.shape[0], validation.shape[1]*validation.shape[2]).T;
     Y_validation = validation_Y;
-    epochs = 10;
+    epochs = 100;
     validation_error = 1; # validation stop metric, initially the error is everywhere
     validation_size = X_validation.shape[1];
     for e in range(epochs):
@@ -124,21 +124,60 @@ def validateNet(net, misclassified=False):
             break;
         else:
             validation_error = number_of_errors_validation/validation_size;
+            #print("validation error: ", validation_error);
     number_of_errors = 0; # total number of errors on the test set
     test_size = X_test.shape[1];
     for n in range(X_test.shape[1]):
         if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
             number_of_errors += 1;
+    #print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
     return number_of_errors/test_size;
-    
-        
+
+# function that evolves a population according a genetic algorithm
+# takes as input:
+#   population_size, the number of nets to evolve
+#   epochs, number of epochs we perform the genetic algorithm
+#   input_size, the input size of each network (i.e. input dimension)
+#   output_size, the output of each network (i.e. number of neurons in the last layer)
+#   selection_type, a string that indicates the selection method used, taken by selection_dict
+#   crossover_type, a string that indicates the crossover method used, taken by crossover_dict
+#   mutation_type,  a string that indicates the mutation method used, taken by mutation_dict
+#   fully_connected, a boolean (set to False) that indicates whether the net is fully connected or not
+#   connection_percentage, the percentage (from 0 to 1) of connections in the averall network
+#   elite_size, the number of elements in the elite (set to 3)
+#   crossover_probability, the probability that two given nets, selected by a selection method, are subject to crossover
+#   mutation_probability, a probability that a net is subjecte to mutation (in each of its part)
+# returns:
+#   the population evolved with the genetic algorithm
+#   the elite from the population
+def evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05):
+    nets = randomPopulation(input_size, output_size, population_size, fully_connect=fully_connected, connection_perc=connection_percentage); # create the population 
+    if elite_size > population_size:
+        elite_size = population_size;    
+    population = evaluateFitness(nets, 1., .0); # train and validate the initial population
+    for e in range(epochs):
+        print("exploring epoch", e);
+        elite, population = el.elitism(population, elite_size, ordered=False); # select the elite in the population and 'save' it from mutation and crossover
+        new_population = list(); # result of the crossover/mutation on the old population
+        for n in range(int(population_size/2)):
+            id1, id2 = selection_dict[selection_type](population, ordered=True);
+            p1, p2 = crossovers_dict[crossover_type](population[id1][0], population[id2][0], crossover_probability); # apply crossover 
+            mutations_dict[mutation_type](p1, mutation_probability);
+            mutations_dict[mutation_type](p2, mutation_probability);
+            new_population.append([p1, validateNet(p1)]);
+            new_population.append([p2, validateNet(p2)]);
+        population = new_population;
+        population = evaluateFitness(list([p[0] for p in population]), 1., .0); # train and validate the initial population
+        population[-elite_size:] = elite; # substitute the worst elements with the elite 
+    return population, elite;
+
 """ Test part """
 verbose = False;
 if verbose:
-    population_size = 20;
+    population_size = 20; # number of elements in our starting population
     epochs = 10; # number of epochs we want to iterate the ga routine
-    nets = randomPopulation(64, 10, population_size, fully_connect=False, connection_perc=.5); # create the population 
-    crossover_probability = .8;
+    nets = randomPopulation(64, 10, population_size, fully_connect=False, connection_perc=.75); # create the population 
+    crossover_probability = .75;
     mutation_probability = .05;
     elite_size = 3;
     
@@ -148,7 +187,7 @@ if verbose:
         elite, population = el.elitism(population, elite_size, ordered=False); # select the elite in the population and 'save' it from mutation and crossover
         new_population = list(); # result of the crossover/mutation on the old population
         for n in range(int(population_size/2)):
-            id1, id2 = selection_dict["roulette"](population, ordered=True);
+            id1, id2 = selection_dict["rank"](population, ordered=True);
             p1, p2 = crossovers_dict["one-point"](population[id1][0], population[id2][0], crossover_probability); # apply crossover 
             mutations_dict["random"](p1, mutation_probability);
             mutations_dict["random"](p2, mutation_probability);
