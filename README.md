@@ -58,7 +58,7 @@ The best strategy is to look at netgenerator.py last part, that gives you a sket
 ```python
 eveolved_population, elite = evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
 ```
-That can be fastly invoked for nets of the same topology introducted before as:
+That can be fastly invoked for a population of 20 nets of the same topology introducted before, through 15 epochs, as:
 ```python
-eveolved_population, elite = evolvePopulation(10, 10, 10, 5, "roulette", "one-point", "random");
+eveolved_population, elite = evolvePopulation(20, 15, 10, 5, "roulette", "one-point", "random");
 ```
