@@ -1,7 +1,7 @@
 ## DeepNet
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
-## Things implemented so far, 05/12/2017: ##
+## Things implemented so far, 13/12/2017: ##
 
 - customizable deep net (specify with **one** line of code whole the net, from neurons to activations to loss);
   - all from backpropagation to check gradient routine is done by using just numpy
@@ -56,7 +56,7 @@ dep.NetPlot(net);
 If you want to evolve a population of nets according to a genetic algorithm strategy, use the functions in netgenerator.py.
 The best strategy is to look at netgenerator.py last part, that gives you a sketch on how to use all the ga routines in the best way. Anyway there's a fast function to do that, with some parameters that are set by default (but can be changed in invokation phase), here's the syntax:
 ```python
-eveolved_population, elite = evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
+evolved_population, elite = evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
 ```
 That can be fastly invoked for a population of 20 nets of the same topology introducted before, through 15 epochs, as:
 ```python
