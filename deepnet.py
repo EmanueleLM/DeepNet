@@ -56,24 +56,41 @@ weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun"
 #      loss: the loss function selected for the backpropagation phase
 # =============================================================================
 class DeepNet(object):
-    def __init__(self, input_size, layers, loss, verbose=False):
+    # define the net architecture:
+    # input_size, the dimension of the input, i.e. the number of input in the first layer
+    # layers, the number of 'hidden' layers, i.e. the number of transformations we apply to the data 
+    # loss, the kind of loss we use to calculate the backprop update
+    # verbose, a boolean (set to False) that prints out a short description of the net
+    # fully_connected, a boolean (set to True) that tells whether the net is fully connected (ffnn) or not
+    # connection_percentage, a floating point number between [0,1] (set to .5) that tells the percentage of connections that are active in an initial non fully connected topology (this one is considere by the code if fully_connected is False)
+    def __init__(self, input_size, layers, loss, verbose=False, fully_connected=True, connection_percentage = .5):
         self.W = list(); # list that contains all the weights in the net (we use a list and np.array for each matrix of weights, for efficiency reasons)
         self.W.append(np.array(np.zeros([input_size, np.int(layers[0][0])]))); # append the first set of weights
         self.Bias = list(); # list that contains all the biases
         self.Bias.append(np.array(np.zeros([np.int(layers[0][0]), 1]))); # append the firts set of biases
         self.activations = np.array(layers[:,1]);
-        self.loss = loss;
-        self.learning_rate = 2e-4; # default learning rate for each iteration phase
-        self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update
+        self.loss = loss; # loss of the net
+        self.learning_rate = 2e-3; # default learning rate for each iteration phase
+        self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update or for the adagrad update
         self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
-        self.dB_old = np.zeros([layers.shape[0], 1]);
-        self.momenutum_rate = 0.5; # default momentum rate for the moemntum weights update
-        self.fully_connected = True; # this boolean specify if the net has a fully connected topopolgy 
+        self.dB_old = list();
+        self.dB_old.append(np.array(np.zeros([np.int(layers[0][0]), 1])));
+        self.momenutum_rate = 0.9; # default momentum rate for the moemntum weights update
+        self.fully_connected = fully_connected; # this boolean specify if the net has a fully connected topopolgy 
         self.mask = list(); # list that contains the binary versions of the weights to tell whether a connection exists or not
+        self.connection_percentage = connection_percentage; # set the connection percentage (this one is useless if the net is fully connected, anyway it's ok)
+        # initialize the weights and the biases
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
             self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
+            self.dB_old.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));
+        # non fully connected case and creation of the mask of binary weights with a given percentage of connections turned off
+        if fully_connected is False:
+            self.fully_connected = False;
+            for w in self.W:
+                self.mask.append(np.random.choice([0.,1.], size=w.shape, p=[1.-connection_percentage, connection_percentage]));
+        # prints out a short description of the net
         if verbose:
             print("\nNetwork created succesfully!");
             self.explainNet();
@@ -110,6 +127,9 @@ class DeepNet(object):
     # mask
     def setMask(self, m):
         self.mask = m;
+    # connections' percentage
+    def setConnectionsPercentage(self, c):
+        self.connection_percentage = c;
     # 
     # Getters:
     #   weights
@@ -142,6 +162,9 @@ class DeepNet(object):
     # mask
     def getMask(self):
         return self.mask;
+    # connections' percentage
+    def getConnectionsPercentage(self):
+        return self.connection_percentage;
             
     # function that explains the net: this means that it describes the network
     # in terms of input, layers and activation functions
@@ -162,7 +185,7 @@ class DeepNet(object):
         net_str += "\nLoss: "+str(self.loss);
         return net_str;
     
-    # functions that specify a topology for the net, which is different from a fully connected nn
+    # function that specifies a topology for the net, which is different from a fully connected nn
     # takes as input:
     #   mask, which is a string that is used to specify the topology of the net
     #         take a look at mask.py module in order to understand the (easy) syntax
@@ -211,15 +234,15 @@ class DeepNet(object):
     def calculateLoss(self, Y, T):
         return loss_dict[self.loss](Y, T)
     
-    # function that performs a step of back propagation of the weights update from the output
+    # function that performs a step of backpropagation of the weights update from the output
     #   (i.e. the loss error) to the varoius weights of the net
     # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
     # takes as input
-    #   the input sample X (column vector)
-    #   the expected output (also as column vector)
+    #   X, the input sample X (column vector)
+    #   T, the expected output (also as column vector)
     # returns
     #   dW, dB: the weights/biases updates at this step
-    def backpropagation(self, X, T, complex=False):  
+    def backpropagation(self, X, T):  
         dW = list(); # list of deltas that are used to calculate weights' update
         dB = list(); # array of deltas that are used to calculate biases' update
         y_hat = self.netActivation(X); # prediction of the network
@@ -242,13 +265,60 @@ class DeepNet(object):
                 chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
             dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
             dB.append(chain);
-        #for dw in range(len(dW)):
-        #    print("p",dW[dw].shape);
         dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
         dB = dB[::-1];
-        #print(dW, "\n\n", dB);
-        #print("Distance between dL/dv and dW.dB, using L2 norm, is ", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)
-        #print(dW, dB)        
+        #print("Distance between dL/dv and dW.dB, using L2 norm:", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)    
+        if self.fully_connected == True:
+            self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
+        # backprop with a non fully connected topology
+        else:
+            for i in range(len(dW)):
+                dW[i] = np.multiply(dW[i], self.mask[i]);
+            self.weightsUpdate(dW, dB);
+        return dW, dB;        
+    
+    # function that performs a step of the ADAGrad backpropagation of the weights update from the output
+    #   (i.e. the loss error) to the varoius weights of the net
+    # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
+    # takes as input
+    #   X, the input sample X (column vector)
+    #   T, the expected output (also as column vector)
+    # returns
+    #   dW, dB: the weights/biases updates at this step
+    def adaBackpropagation(self, X, T):  
+        dW = list(); # list of deltas that are used to calculate weights' update
+        dB = list(); # array of deltas that are used to calculate biases' update
+        y_hat = self.netActivation(X); # prediction of the network
+        dY = derivatives_dict[self.loss](y_hat, T); # first factor of each derivative dW(i)
+        # calculate the partial derivatives of each layer, and reverse the list (we want to start from the last layer)
+        # we get something like partial_activation = {df_last(Z(last))/dZ(last), .., x}
+        partial_derivatives = list(derivatives_dict[self.activations[i]](self.partialActivation(X, i)) for i in range(self.activations.shape[0])); # partial derivatives of the net 
+        partial_derivatives = partial_derivatives[::-1]; # reverse the list (we will use the net in a reverse fashion)
+        partial_derivatives.append(X); # append the last derivative which is X (dWX/dW = X)
+        # calculate the partial activation of each function, and reverse the list
+        # we get something like partial_activation = {f_last(Z(last)), .., net.W[0]*x}
+        partial_activations = list(self.partialActivation(X, i) for i in range(self.activations.shape[0]))[::-1];
+        partial_activations.append(X);
+        chain = 0;
+        for l in range(len(self.W))[::-1]:
+            if l != len(self.W)-1:
+                chain = np.dot( self.W[l+1], chain);
+                chain = np.multiply( chain, partial_derivatives[len(self.W)-l-1]);
+            else:
+                chain = np.multiply(dY, partial_derivatives[len(self.W)-l-1]);
+            dW.append(np.multiply( np.tile(chain, self.W[l].shape[0]).T, partial_activations[len(self.W)-l]) );
+            dB.append(chain);
+        dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
+        dB = dB[::-1]; # ..
+        #print("Distance between dL/dv and dW.dB, using L2 norm:", self.checkGradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)    
+        # calculate the weights update according to ADAGrad algorithm
+        for n  in range(len(self.W)):
+            # keep trace of the sum of the gradients for ADAGrad algorithm
+            self.dW_old[n] += dW[n];
+            self.dB_old[n] += dB[n]; 
+            # calculate ADAGrad's update
+            dW[n] = np.multiply(dW[n], 1/(np.sqrt(np.power(self.dW_old[n], 2))+1e-10)); 
+            dB[n] = np.multiply(dB[n], 1/(np.sqrt(np.power(self.dB_old[n], 2))+1e-10));  
         if self.fully_connected == True:
             self.weightsUpdate(dW, dB); # perform weights update self.W[i] = self.W[i] - l_rate[i]*dY*dW[i]
         # backprop with a non fully connected topology
@@ -257,7 +327,7 @@ class DeepNet(object):
                 dW[i] = np.multiply(dW[i], self.mask[i]);
             self.weightsUpdate(dW, dB);
         return dW, dB;
-        
+    
     # function that updates the weights of the net
     # takes as input
     #    dW, the vector that contains all the weights' updates of the net
@@ -272,7 +342,6 @@ class DeepNet(object):
     #    dW, the vector that contains all the weights' updates of the net
     #    dB, the same, but for the biases
     def weightsUpdateWithMomentum(self, dW, dB):
-        #print("magnitude of the update of the first set of weights is ", np.log10(np.abs(np.sum(self.dW_old[0])+ np.sum(dW[0]))));
         for i in range(len(dW)):
             self.W[i] -= (self.learning_rate*dW[i] - self.momenutum_rate*self.dW_old[i]);  # add the learning rate for EACH layer   
             self.Bias[i] -= (self.learning_rate*dB[i] - self.momenutum_rate*self.dB_old[i]); 
@@ -292,7 +361,7 @@ class DeepNet(object):
     #   T: prediction (we are in a supervised scenario) 'label' for the given input
     # returns:
     #   the distance between the delta weights/biases vector and the derivative of the loss wrt all the parameters of the net
-    def checkGradient(self, dW, dB, X, Y, T, complex=False):
+    def checkGradient(self, dW, dB, X, Y, T):
         epsilon = 10**-3; # the epsioln we use to calculate dL/dv manually
         deltaW = np.array([]); # contains all the weights' update (calculated in backprop phase)
         deltaL = np.array([]); # contains all the derivatives of the loss function wrt a single parameter of the net, evaluated in a specific point (X,Y,T,W \setminus v,v)
@@ -303,11 +372,11 @@ class DeepNet(object):
         for n in range(len(self.W)): # evaluate the loss with a small perturbation of each parameter of the net, one by one
             for i in range(self.W[n].shape[0]):
                 for j in range(self.W[n].shape[1]):
-                    self.W[n][i][j] += epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);                   
+                    self.W[n][i][j] += epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);                   
                     partialL_plus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
-                    self.W[n][i][j] -= 2*epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);
+                    self.W[n][i][j] -= 2*epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);
                     partialL_minus = np.sum(self.calculateLoss(self.netActivation(X) ,T));
-                    self.W[n][i][j] += epsilon*(1 if self.fully_connected is True else self.mask[n][i][j]);
+                    self.W[n][i][j] += epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);
                     deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         for n in range(len(self.Bias)): # same with the biases vectors
             for j in range(len(self.Bias[n])):
@@ -335,7 +404,7 @@ class DeepNet(object):
         return params
         
 """ Test part """
-verbose = True;
+verbose = False;
 if verbose:
     # create a toy dataset
     # X = da.randomData(1000, 64);
@@ -358,9 +427,10 @@ if verbose:
     #    we want as loss the L1 (lasso)
     #    we just specify:
     #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-    net = DeepNet(64, np.array([[35, "tanh"], [10, "leakyrelu"]]), "L2", True); # create the net
+    net = DeepNet(64, np.array([[33, "tanh"], [10, "tanh"]]), "L2", verbose=True, fully_connected=False, connection_percentage=.5); # create the net
     # the first layer is divided in two regions connected, respectively, to each half of the second layer, while the second layer is fully connected to the output
-    #net.netTopology('layer(1): 1:32|1:32, 33:64|33:64 layer(2): :35|:10'); 
+    #net.netTopology('layer(1): :32|:5, 33:|6: layer(2): :|:');
+    #net.setLearningRate(2e-4);
     ##
     # initialize the weights (the way you can initialize them are specified in weights_dict)
 #    for i in range(len(net.W)):
@@ -412,6 +482,7 @@ if verbose:
             break;
         else:
             validation_error = number_of_errors_validation/validation_size;
+            print("validation error: ", validation_error);
     number_of_errors = 0; # total number of errors on the test set
     test_size = X_test.shape[1];
     for n in range(X_test.shape[1]):
