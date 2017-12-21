@@ -22,7 +22,8 @@ def relu(W, X, b):
 
 # LeakyReLU activation function, where \epsilon is set to 0.01
 def leakyRelu(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input    Z[Z<=0] = 0.1;
+    Z = np.dot(W.T,X) + b; # activate (linearly) the input    
+    Z[Z<=0] = 0.1;
     return Z;
 
 # tanh activation function
