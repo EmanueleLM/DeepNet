@@ -71,10 +71,6 @@ class DeepNet(object):
         self.activations = np.array(layers[:,1]);
         self.loss = loss; # loss of the net
         self.learning_rate = 2e-3; # default learning rate for each iteration phase
-        self.dW_old = list(); # list that contains (usually) the weights of a past iteration: you may use it for the momentum's update or for the adagrad update
-        self.dW_old.append(np.array(np.zeros([input_size, np.int(layers[0][0])])));
-        self.dB_old = list();
-        self.dB_old.append(np.array(np.zeros([np.int(layers[0][0]), 1])));
         self.momenutum_rate = 0.9; # default momentum rate for the moemntum weights update
         self.fully_connected = fully_connected; # this boolean specify if the net has a fully connected topopolgy 
         self.mask = list(); # list that contains the binary versions of the weights to tell whether a connection exists or not
@@ -83,8 +79,9 @@ class DeepNet(object):
         for l in range(len(layers)-1):
             self.W.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # append all the weights to the list of net's weights
             self.Bias.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));  # append all the biases to the list of net's biases
-            self.dW_old.append(np.array(np.zeros([np.int(layers[l][0]), np.int(layers[l+1][0])]))); # this one is to create also a list of the copy of the net's weights
-            self.dB_old.append(np.array(np.zeros([np.int(layers[l+1][0]), 1])));
+        # once we have created the weights of the net, just copy (deep) them onto the parameters that are initially the same
+        self.dW_old = cp.deepcopy(self.W);
+        self.dB_old = cp.deepcopy(self.Bias);
         # non fully connected case and creation of the mask of binary weights with a given percentage of connections turned off
         if fully_connected is False:
             self.fully_connected = False;
@@ -204,6 +201,7 @@ class DeepNet(object):
             return activations_dict[self.activations[layer]](self.W[layer], X, self.Bias[layer]); # activate the activation function of each layer using the vocabulary defined at the beginning            
         else:
             return activations_dict[self.activations[layer]](np.multiply(self.W[layer], self.mask[layer]), X, self.Bias[layer]); # activation with non fully connected topology
+    
     # perform activation truncated to a given layer
     # please note that for a L layers nn, we will have L activations Z(1), .., Z(4)
     #   whose dimension is equal to [m,1], where m is the number of neurons the layer ends with 
@@ -404,7 +402,7 @@ class DeepNet(object):
         return params
         
 """ Test part """
-verbose = False;
+verbose = True;
 if verbose:
     # create a toy dataset
     # X = da.randomData(1000, 64);
@@ -427,7 +425,7 @@ if verbose:
     #    we want as loss the L1 (lasso)
     #    we just specify:
     #    example_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-    net = DeepNet(64, np.array([[33, "tanh"], [10, "tanh"]]), "L2", verbose=True, fully_connected=False, connection_percentage=.5); # create the net
+    net = DeepNet(64, np.array([[35, "sigmoid"], [10, "sigmoid"]]), "CrossEntropy", verbose=True); # create the net
     # the first layer is divided in two regions connected, respectively, to each half of the second layer, while the second layer is fully connected to the output
     #net.netTopology('layer(1): :32|:5, 33:|6: layer(2): :|:');
     #net.setLearningRate(2e-4);
