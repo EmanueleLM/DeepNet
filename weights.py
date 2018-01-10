@@ -32,3 +32,8 @@ def lecunWeights(W):
 # return a weights' matrix made of all unitary weights (it's for tests purpose)
 def unitaryWeights(W):
     return np.ones(W.shape);
+
+# flashcard weights initialization (I don't know where it exactly comes from, but it is taken from machinelearningflashcards <dot> com)
+def flashcardWeights(W, n_input, n_output):
+    I = np.sqrt(6/(n_input+n_output));
+    return np.random.uniform(-I, I, W.shape);
