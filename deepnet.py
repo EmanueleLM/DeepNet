@@ -45,7 +45,7 @@ derivatives_dict ={"L1": de.dYL1, "L2": de.dYL2, "CrossEntropy": de.dYCrossEntro
 #   define a function in weights.py (imported let's say as we), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": we.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
-weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun": we.lecunWeights, "unitary": we.unitaryWeights};
+weights_dict = {"random": we.randomWeights, "uniform":we.uniformWeights, "lecun": we.lecunWeights, "unitary": we.unitaryWeights, "flashcard":we.flashcardWeights};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
@@ -446,7 +446,8 @@ if verbose:
     #for i in range(len(net.W)): #initialize the weights
     #    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
     for i in range(len(net.W)): #initialize the weights
-        net.setWeights(weights_dict['lecun'](net.W[i]), i); 
+        net.setWeights(weights_dict['flashcard'](net.W[i], net.W[0].shape[0], net.W[-1].shape[1]), i); 
+        net.setBias(weights_dict['flashcard'](net.Bias[i], net.W[0].shape[0], net.W[-1].shape[1]), i);
     import utils.utils_digit_recognition as drec
     train_percentage = 60; # percentage of the dataset used for training
     validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
