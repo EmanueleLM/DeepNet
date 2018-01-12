@@ -10,33 +10,33 @@ Activation functions, versions with single sample, with full dataset, both SIMD 
 import numpy as np
 
 # logistic function activation
-def sigma(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input
-    return 1/(1+np.exp(-Z));
+def sigma(weights, X, bias):
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input
+    return 1/(1+np.exp(-z));
     
 # ReLU activation function
-def relu(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input    
-    Z[Z<=0] = 0;
-    return Z;
+def relu(weights, X, bias):
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input    
+    z[z<=0] = 0;
+    return z;
 
 # LeakyReLU activation function, where \epsilon is set to 0.01
-def leakyRelu(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input    
-    Z[Z<=0] = 0.1;
-    return Z;
+def leaky_relu(weights, X, bias):
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input    
+    z[z<=0] = 1e-4;
+    return z;
 
 # tanh activation function
-def tanh(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input
-    return (np.exp(Z)-np.exp(-Z))/(np.exp(Z)+np.exp(-Z));
+def tanh(weights, X, bias):
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input
+    return (np.exp(z)-np.exp(-z))/(np.exp(z)+np.exp(-z));
 
 # exp activation function
-def exp(W, X, b):
-    Z = np.dot(W.T,X) + b; # activate (linearly) the input
-    return np.exp(Z);
+def exp(weights, X, bias):
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input
+    return np.exp(z);
 
 # linear activation function
-def linear(W, X, b):
-    Z = np.dot(W.T, X) + b; # activate (linearly) the input
-    return Z;
+def linear(weights, X, bias):
+    z = np.dot(weights.T, X) + bias; # activate (linearly) the input
+    return z;

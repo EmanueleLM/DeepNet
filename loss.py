@@ -11,19 +11,19 @@ import numpy as np
 
 # loss functions for the train set    
 # respectively L2, L1 losses
-# Y is the value predicted by our algorithm
-# T is the real value (we are in a supervised scenario)
-def lossL2(Y, T):
-    return np.absolute(np.power((T-Y), 2));
+# y is the value predicted by our algorithm
+# t is the real value (we are in a supervised scenario)
+def loss_L2(y, t):
+    return np.absolute(np.power((t-y), 2));
 
-def lossL1(Y, T):
-    return np.abs((T-Y));
+def loss_L1(y, t):
+    return np.abs((t-y));
 
 # loss function known as Cross Entropy
-# Y is the value predicted by our algorithm
-# T is the real value (we are in a supervised scenario)
-# we expect that the number of dimensions is the first dimension of both the input (so Y.shape[1]=T.shape[1]=dimensions)
-def lossCrossEntropy(T, Y):
-    Y[Y==1] = 1-1e-10;
-    Y[Y==0] = 1e-10;
-    return -T*np.log2(Y)-(1-T)*np.log2(1-Y);
+# y is the value predicted by our algorithm
+# t is the real value (we are in a supervised scenario)
+# we expect that the number of dimensions is the first dimension of both the input (so y.shape[1]=t.shape[1]=dimensions)
+def loss_cross_entropy(t, y):
+    y[y==1] = 1-1e-10;
+    y[y==0] = 1e-10;
+    return -t*np.log2(y)-(1-t)*np.log2(1-y);

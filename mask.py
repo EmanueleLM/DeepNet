@@ -41,24 +41,24 @@ class Mask(object):
     def __init__(self, net, net_topology):
         # create some 'masks' of weights as binary matrices that are used to put to zero the desired connections
         # assume a fully connected net
-        self.W = list();
-        self.Bias = list();
-        for w in net.W:
-            self.W.append(np.zeros(w.shape));
-        self.createMask(net_topology); # assign the descritpion of each connection accoring to the connections' specification
+        self.weights = list();
+        self.bias = list();
+        for w in net.weights:
+            self.weights.append(np.zeros(w.shape));
+        self.create_mask(net_topology); # assign the descritpion of each connection accoring to the connections' specification
         # this part heavily uses regexp, please follow the comments (with a simple example) in order to understand it well
         for i in range(len(self.layers)):
             for j in range(len(self.layers[i])):
                 part1, part2 = re.split('\|', self.layers[i][j]); # split the range in two parts, e.g. '2:3|4:10' -> '2:3', '4:10'
                 # process the two parts distinctly
-                part1 = self.parseRange(part1, self.W[i].shape[0]); # from the first chunk return the range between whom we want to change the consider the connections of the incoming layer, e.g. '3:5' -> 'range(3,5)'
-                part2 = self.parseRange(part2, self.W[i].shape[1]); # really the same as above, but wrt the other layer
+                part1 = self.parse_range(part1, self.weights[i].shape[0]); # from the first chunk return the range between whom we want to change the consider the connections of the incoming layer, e.g. '3:5' -> 'range(3,5)'
+                part2 = self.parse_range(part2, self.weights[i].shape[1]); # really the same as above, but wrt the other layer
                 part1 = eval(part1);
                 part2 = eval(part2);
-                self.W[i][min(part1)-1:max(part1),min(part2)-1:max(part2)] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
+                self.weights[i][min(part1)-1:max(part1),min(part2)-1:max(part2)] = 1; # create the connection using exec (bad programming uses exec and eval? non ne EVALe la pena?)
             
     # this function parses the input of the 'user' that wants to define a non-fully connected neural net
-    def createMask(self, net_topology):
+    def create_mask(self, net_topology):
         # parse the net_topology given by the input
         self.layers = re.sub(r"\s+", "", net_topology, flags=re.UNICODE); # remoe all withespaces
         self.layers = re.split('layer\(\d+\):', self.layers)[1:]; # eliminate the header of each layer specification
@@ -67,7 +67,7 @@ class Mask(object):
     # this function takes as input a connection and returns one or more columns of the binary matrix used to define the topology of the net
     # takes as input
     #   connection, a connection in the form a:b|c:d (or a|b:c, a|b, a:b|c)
-    def parseConnection(self, connection):
+    def parse_connection(self, connection):
         return connection.replace('|', ',');
     
     # this function is used to parse the single connection range, mainly because something like 'a:b' is not allowed in eval()
@@ -76,7 +76,7 @@ class Mask(object):
     #   chunk, which is the string that indicated the range we wanto to specify the topology of, e.g. 'a:b'
     #   layer_shape, which is the integer that indicates the shape of layer of the net we are dealing with and is used when the second term in the
     #          expression is not specified and we have something like 'a:' (which is a shortcut of 'a:tot_num_parameters')
-    def parseRange(self, chunk, layer_shape):
+    def parse_range(self, chunk, layer_shape):
         # case 'a:b' (all the neruons from a-th to b-th, included)
         if re.match('(\d+):(\d+)', chunk): 
             r1, r2 = re.match('(\d+):(\d+)', chunk).group(1,2);
@@ -109,6 +109,6 @@ if verbose:
     net = dn.DeepNet(3, np.array([[5, "tanh"], [6, "linear"]]), "L2", True); # create the net
     mask = Mask(net, example_str);
     net.fully_connected = False;
-    net.setMask(mask.W);
+    net.set_mask(mask.weights);
     import deepplot.netplot as nep
     nep.NetPlot(net);
