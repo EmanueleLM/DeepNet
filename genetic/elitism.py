@@ -24,7 +24,7 @@ from operator import itemgetter # used to sort the vector of population <net, fi
 #    the vector of best nets, composed by the best elite_size members of the population
 def elitism(population, elite_size, ordered=False):
     if ordered is False:
-        population = sortByFitness(population);
+        population = sort_by_fitness(population);
     if elite_size >= len(population):
         return population, population;
     else:
@@ -33,17 +33,18 @@ def elitism(population, elite_size, ordered=False):
 # this function test whether the elite is 'robust' by letting all the members of the elite compete 
 #  on all the misclassified examples, with a learning rate that is considerably bigger than the one of 
 #  each net and is adjusted by considering how many misclassified examples are in total
-def steadyElite(elite):
+def steady_elite(elite):
     """ complete this function with an effective method to make the accuracy of the elite stable against what we have, so the errors in the train set """
     """ this is something like a booster where the nets in the elite deal with the most difficult part of the dataset in a distributed way """
     """ 1. test all the elements in the elite against the data misclassified by all the elite memebers, with a higher learning rate 
         2. put the new elements in the elite, this means that at the next step we could have a bad elite and in this way some of them will be changed with elements of the population ;)
     """
+    
     pass;
     
 # utility that orders the population of <net, fitness> in descending/ascendig order wrt the fitness itself
 # takes as input:
 #        population, the population as tuples of <net, fitness>
 #        desc, boolean (that is considered False if not given) that means that the resulting population will be in descending order, otherwise ascending
-def sortByFitness(population, desc=False):
+def sort_by_fitness(population, desc=False):
     return sorted(population, key = itemgetter(1), reverse=False);

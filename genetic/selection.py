@@ -24,9 +24,9 @@ from operator import itemgetter # used to sort the vector of population <net, fi
 #       if it is not true, re-iterate with .25 (25%) and so on..
 #   the index of the iteration for which the disequality holds is id1
 #   do it again for the second index, id2 
-def rankSelection(population, ordered=True):
+def rank_selection(population, ordered=True):
     if ordered is False: # if we have a non-ordered population (by fitness), order it
-        population = sortByFitness(population); 
+        population = sort_by_fitness(population); 
     p = np.random.rand();
     for i in range(len(population)):
         if p >= 2**(-i-1):
@@ -59,9 +59,9 @@ def rankSelection(population, ordered=True):
 # how it is implemented:
 #   assign to each net a probability that is proportional to its fitness
 #   select two nets according to the probability assigned to each member of the population
-def rouletteSelection(population, ordered=True):
+def roulette_selection(population, ordered=True):
     if ordered is False: # if we have a non-ordered population (by fitness), order it
-        population = sortByFitness(population); 
+        population = sort_by_fitness(population); 
     total_fitness = np.sum(p[1] for p in population); 
     partial_fitness = np.array([f[1]/total_fitness for f in population]);
     # generate probability intervals for each individual
@@ -88,5 +88,5 @@ def rouletteSelection(population, ordered=True):
 # takes as input:
 #        population, the population as tuples of <net, fitness>
 #        desc, boolean (that is considered False if not given) that means that the resulting population will be in descending order, otherwise ascending
-def sortByFitness(population, desc=False):
+def sort_by_fitness(population, desc=False):
     return sorted(population, key = itemgetter(1), reverse=False);
