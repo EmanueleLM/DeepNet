@@ -110,7 +110,7 @@ class NeuralNetwork():
         pyplot.axis('normal');
         pyplot.title('Output neurons');
         pyplot.xlabel('Input');
-        pyplot.savefig('img.pdf', dpi=50); # eventually save the net on a file
+        #pyplot.savefig('img.pdf', dpi=50); # eventually save the net plot on a file
         
 class NetPlot():
     def __init__(self, net):
@@ -124,6 +124,7 @@ class NetPlot():
         for i in range(len(net.W)):
             network.add_layer(net.W[i].shape[1]);
         network.draw(None if net.fully_connected is True else net.mask);
+        print(net); # print informations on the net itself
         
 """ Test """
 verbose = False;
@@ -131,5 +132,5 @@ if verbose:
     import deepnet as dn # this one conflicts with deepnet module so make all this stuff 'un'-verbose before launching any other module
     net = dn.DeepNet(8, np.array([[10, "tanh"], [7, "leakyrelu"], [12, "tanh"]]), "L2", True); # create the net
     # the first layer is divided in two regions connected, respectively, to each half of the second layer, while the second layer is fully connected to the output
-    net.netTopology('layer(1): 1:3|1:2, 4:5|3, 6|4:9, 7:8|10 layer(2): :3|:7, 4:10|7 layer(3): :7|:12'); 
+    net.net_topology('layer(1): 1:3|1:2, 4:5|3, 6|4:9, 7:8|10 layer(2): :3|:7, 4:10|7 layer(3): :7|:12'); 
     NetPlot(net);
