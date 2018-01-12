@@ -21,7 +21,7 @@ def unison_shuffled_copies(a, b):
 # function that plots a digit starting from a 8*8 matrix of greyscales
 # takes as input
 #   m, the matrix that contains the greyscale of the digit
-def plotDigit(m):
+def plot_digit(m):
     plt.gray();
     plt.matshow(m); 
     plt.show();
@@ -32,7 +32,7 @@ def plotDigit(m):
 #   train_percentage, the percentage of split train/test
 # returns
 # thetrain adn test datasets, splitted accoridngly
-def dataSplit(data, train_percentage):
+def data_split(data, train_percentage):
     last_index_train = int(len(data)*(train_percentage/100)); # calculate the number of train samples wrt the number of data samples
     return data[:last_index_train], data[last_index_train:];
 
@@ -64,25 +64,8 @@ def vectorize(X):
 #   X, the input matrix, whose shape is (m, n, 1)
 # returns
 # normalized X, with the same shape
-def normalizeData(X):
+def normalize_data(X):
     #X = X.reshape(X.shape[0], X.shape[1], 1);
     for i in range(X.shape[0]):
         X[:,i] = (X[:,i]-np.mean(X[:,i]))/np.std(X[:,i]); # normalize both input and output
     return X;
-
-
-""" classify some numbers! """
-"""
-train_percentage = 70; # percentage of the dataset used for training
-
-digits = load_digits(); # import the dataset
-
-images, targets = unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
-
-train, test = dataSplit(images, train_percentage);# split train adn test
-train_Y, test_Y = dataSplit(targets, train_percentage); # split train and test labels
-
-train_Y = binarization(train_Y); # binarize both the train and test labels
-test_Y = binarization(test_Y); # ..
-"""
-

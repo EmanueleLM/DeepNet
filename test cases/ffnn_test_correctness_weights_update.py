@@ -27,18 +27,18 @@ net.learning_rate = 1; # set the learning rate to 1
 
 X = np.array([[[1.],[2.]]]);
 T = np.array([[0.]]);
-net.W[0] = np.array([[1.,1.],[1.,2.]]);
-net.W[1] = np.array([[1.],[1.]]);
-net.Bias[0] = np.array([[0.],[0.]]);
-net.Bias[1] = np.array([[0.]]);
+net.weights[0] = np.array([[1.,1.],[1.,2.]]);
+net.weights[1] = np.array([[1.],[1.]]);
+net.bias[0] = np.array([[0.],[0.]]);
+net.bias[1] = np.array([[0.]]);
 
 print("Initial weights and biases");
-print(net.W);
-print(net.Bias);
+print(net.weights);
+print(net.bias);
 
 dW, dB = net.backpropagation(X[0], T);
 
 print("Updated weights and their update");
-print(net.W, dW);
+print(net.weights, dW);
 print("Updated biases and their update")
-print(net.Bias, dB);
+print(net.bias, dB);

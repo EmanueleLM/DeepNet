@@ -15,9 +15,10 @@ In order to obtain those results, we set learning_rate = 0.02, no momentum
 """
 
 net = DeepNet(64, np.array([[128, "sigmoid"], [10, "sigmoid"]]), "L2"); # create the net
-for i in range(len(net.W)): #initialize the weights
-    net.setWeights(weights_dict['lecun'](net.W[i]), i); 
-    
+for i in range(len(net.weights)): #initialize the weights
+    net.weights = weights_dict['lecun'](net.weights[i]); 
+    net.bias = weights_dict['lecun'](net.bias[i]);
+
 import utils_digit_recognition as drec
 
 train_percentage = 60; # percentage of the dataset used for training
@@ -29,11 +30,11 @@ train_size = len(digits.images); # train size is the number of samples in the di
 
 images, targets = drec.unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
 
-train, test = drec.dataSplit(images, train_percentage);# split train adn test
-train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
+train, test = drec.data_split(images, train_percentage);# split train adn test
+train_Y, test_Y = drec.data_split(targets, train_percentage); # split train and test labels
 
-validation, test = drec.dataSplit(test, validation_percentage);
-validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
+validation, test = drec.data_split(test, validation_percentage);
+validation_Y, test_Y = drec.data_split(test_Y, validation_percentage);
 
 train_Y = drec.binarization(train_Y); # binarize both the train and test labels
 test_Y = drec.binarization(test_Y); # ..
@@ -43,8 +44,8 @@ validation_Y = drec.binarization(validation_Y); # ..
 X = train.reshape(train.shape[0], train.shape[1]*train.shape[2]).T;
 Y = train_Y;
 
-X = drec.normalizeData(X);
-#Y = drec.normalizeData(Y.T).T;
+X = drec.normalize_data(X);
+#Y = drec.normalize_data(Y.T).T;
 
 X_test = test.reshape(test.shape[0], test.shape[1]*test.shape[2]).T;
 Y_test = test_Y;
@@ -53,8 +54,8 @@ X_validation = validation.reshape(validation.shape[0], validation.shape[1]*valid
 Y_validation = validation_Y;
 
 
-#X_test = drec.normalizeData(X_test);
-#Y_test = drec.normalizeData(Y_test.T).T;
+#X_test = drec.normalize_data(X_test);
+#Y_test = drec.normalize_data(Y_test.T).T;
 
 """ Train with full batch (size of the batch equals to the size of the dataset) """
 epochs = 100;
@@ -66,7 +67,7 @@ for e in range(epochs):
         net.backpropagation(X[:,n].reshape(64,1), Y[n].reshape(10,1));
         number_of_errors_validation = 0;
     for n in range(X_validation.shape[1]):
-        if np.argmax(net.netActivation(X_validation[:,n].reshape(64,1))) != np.argmax(Y_validation[n].reshape(10,1)):
+        if np.argmax(net.net_activation(X_validation[:,n].reshape(64,1))) != np.argmax(Y_validation[n].reshape(10,1)):
             number_of_errors_validation += 1;
     if float(number_of_errors_validation/validation_size) > validation_error:
         break;
@@ -78,6 +79,6 @@ for e in range(epochs):
 number_of_errors = 0; # total number of errors on the test set
 test_size = X_test.shape[1];
 for n in range(X_test.shape[1]):
-    if np.argmax(net.netActivation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
+    if np.argmax(net.net_activation(X_test[:,n].reshape(64,1))) != np.argmax(Y_test[n].reshape(10,1)):
         number_of_errors += 1;
 print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");

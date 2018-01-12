@@ -16,7 +16,7 @@ Use this code just below the code on your deepnet.py (it should be done in anoth
 the module, I don't have both the time and the will)
 """
 
-import utils_digit_recognition as drec
+import utils.utils_digit_recognition as drec
 
 train_percentage = 60; # percentage of the dataset used for training
 validation_percentage = 20; # this percentage must be lower than the test set, since it's taken directly from it (for the sake of simplicity)
@@ -27,11 +27,11 @@ train_size = len(digits); # train size is the number of samples in the digits' d
 
 images, targets = drec.unison_shuffled_copies(digits[:,1:], digits[:,0].astype(int)); # shuffle together inputs and supervised outputs
 
-train, test = drec.dataSplit(images, train_percentage);# split train adn test
-train_Y, test_Y = drec.dataSplit(targets, train_percentage); # split train and test labels
+train, test = drec.data_split(images, train_percentage);# split train adn test
+train_Y, test_Y = drec.data_split(targets, train_percentage); # split train and test labels
 
-validation, test = drec.dataSplit(test, validation_percentage);
-validation_Y, test_Y = drec.dataSplit(test_Y, validation_percentage);
+validation, test = drec.data_split(test, validation_percentage);
+validation_Y, test_Y = drec.data_split(test_Y, validation_percentage);
 
 train_Y = drec.binarization(train_Y); # binarize both the train and test labels
 test_Y = drec.binarization(test_Y); # ..
@@ -64,7 +64,7 @@ for e in range(epochs):
         net.backpropagation(X[:,n].reshape(784,1), Y[n].reshape(10,1));
         number_of_errors_validation = 0;
     for n in range(X_validation.shape[1]):
-        if np.argmax(net.netActivation(X_validation[:,n].reshape(784,1))) != np.argmax(Y_validation[n].reshape(10,1)):
+        if np.argmax(net.net_activation(X_validation[:,n].reshape(784,1))) != np.argmax(Y_validation[n].reshape(10,1)):
             number_of_errors_validation += 1;
     if float(number_of_errors_validation/validation_size) > validation_error:
         break;
@@ -76,6 +76,6 @@ for e in range(epochs):
 number_of_errors = 0; # total number of errors on the test set
 test_size = X_test.shape[1];
 for n in range(X_test.shape[1]):
-    if np.argmax(net.netActivation(X_test[:,n].reshape(784,1))) != np.argmax(Y_test[n].reshape(10,1)):
+    if np.argmax(net.net_activation(X_test[:,n].reshape(784,1))) != np.argmax(Y_test[n].reshape(10,1)):
         number_of_errors += 1;
 print("The error percentage is ", number_of_errors/test_size, ": ", number_of_errors," errors out of ", test_size, " samples on test set.");
