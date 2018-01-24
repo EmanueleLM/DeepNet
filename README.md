@@ -1,7 +1,13 @@
 ## DeepNet
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
-## Things implemented so far, 13/12/2017: ##
+## 24/01/2018 NEWS ##
+
+- [COMING SOON] parallel training (multiple processes) and weighted majority vote on classification tasks;
+
+- [COMING NOT SO SOON] parallel training (multiple devices)
+
+## Things implemented so far, 24/01/2018: ##
 
 - customizable deep net (specify with **one** line of code whole the net, from neurons to activations to loss);
   - all from backpropagation to check gradient routine is done by using just numpy
@@ -23,8 +29,6 @@ TODO (in order of importance to me):
   - robusteness of the elite by checking it from time to time: tournament among the elements of the elite on the misclassified examples;
   - new crossover/mutation/selection methods.;
  
-- cythonize the code (! numpy is built on cython)
-
 - make it work natively with complex functions (mainly for signal processing);
 
 ## Create a network ##
