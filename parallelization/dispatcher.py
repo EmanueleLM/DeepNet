@@ -14,7 +14,7 @@ The initial dataset is split in chunks and feeded to each network randomly by th
 import multiprocessing
 import numpy as np
 import parallelization.dtrain as dt
-import psutil # count the number of logical CPUs
+import psutil # used to count the number of logical CPUs
 
 # create several neural networks and dispatch their training on different processes
 #   it is not already possible to dispatch them on a different device such as gpus etc.: I'm working on this ;)

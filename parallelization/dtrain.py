@@ -9,7 +9,6 @@ This module (distributed train -> dtrain) provides the way to train a net on a d
 """
 
 import numpy as np
-import deepnet as dn
 
 # train a net on the train set;
 # validate the net using the early stopping technique;
@@ -24,12 +23,8 @@ def train(net, X, T, epochs=10, train_percentage=.7, validation_percentage=.2, t
     # train the net
     # TODO: validate (and eventually stop the learning)
     # TODO: test the perfomances and set net.accuracy_on_test according to the results
-    for i in range(len(net.weights)): #initialize the weights
-        net.weights[i] = dn.weights_dict['lecun'](net.weights[i]); 
-        net.bias[i] = dn.weights_dict['lecun'](net.bias[i]);
     for e in range(epochs):
-        print((epochs-e)," epochs left");
-        for n in range(X.shape[0]):
+        for n in range(X.shape[1]):
             d_weights, d_biases = net.backpropagation(X[:,n].reshape(net.weights[0].shape[0],1), T[:,n].reshape(net.weights[-1].shape[1],1));
             net.weights_update(d_weights, d_biases);
     return net;
