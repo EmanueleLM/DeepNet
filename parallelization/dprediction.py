@@ -21,8 +21,24 @@ import numpy as np
 # returns:
 #   a vector of C entries, where C is the number of possible outcomes in the classification task
 #   the index of the prediction out of C, from 0 (first class) to C-1 (last class)
-def single_class_prediction(x, nets, wieghted=False):
-    prediction = nets[0].accuracy_on_test * cp.deepcopy(nets[0].net_activation(x));
-    for n in len(nets)-1:        
-        prediction += n.accuracy_on_test * n.net_activations(x);
+def single_class_prediction(x, nets, weighted=False):
+    net_importance = (1. if weighted==False else nets[0].accuracy_on_test);
+    prediction = net_importance * cp.deepcopy(nets[0].net_activation(x));
+    for n in range(len(nets)-1):  
+        net_importance = (1. if weighted==False else nets[n].accuracy_on_test);
+        prediction += net_importance * nets[n].net_activation(x);
     return prediction, np.argmax(prediction);
+
+# classify a sample based on weighted-majority vote of n nets
+# takes as input:
+#   x, the sample we need to classify
+#   nets, a list of neural networks tranied on different samples (at least one)
+# returns:
+#   the average of the prediction of each net, eventually weighted by their importance
+def regression(x, nets, weighted=False):
+    net_importance = (1. if weighted is False else nets[0].accuracy_on_test);
+    prediction = net_importance * cp.deepcopy(nets[0].net_activation(x));
+    for n in range(len(nets)-1):  
+        net_importance = (1. if weighted is False else nets[n].accuracy_on_test);
+        prediction += net_importance * nets[n].net_activation(x);
+    return prediction/len(nets);
