@@ -3,8 +3,6 @@
 
 ## 24/01/2018 NEWS ##
 
-- [COMING SOON] parallel training (multiple processes) and weighted majority vote on classification tasks;
-
 - [COMING NOT SO SOON] parallel training (multiple devices)
 
 ## Things implemented so far, 24/01/2018: ##
@@ -14,6 +12,8 @@
   - add with a human-like line the topology specification (otherwise it's considered fully connected)
 
 - genetic algorithm to find a good network against a train/validation sample of a problem (you can balance between size and accuracy);
+
+- parallel training (multiple processes) to do (weighted) majority vote on classification and regression tasks;
 
 - fully connected and locally connected networks;
 
