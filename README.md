@@ -1,19 +1,13 @@
 ## DeepNet
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
-## 24/01/2018 NEWS ##
-
-- [COMING NOT SO SOON] parallel training (multiple devices)
-
-## Things implemented so far, 24/01/2018: ##
+## Things implemented so far, 13/12/2017: ##
 
 - customizable deep net (specify with **one** line of code whole the net, from neurons to activations to loss);
   - all from backpropagation to check gradient routine is done by using just numpy
   - add with a human-like line the topology specification (otherwise it's considered fully connected)
 
 - genetic algorithm to find a good network against a train/validation sample of a problem (you can balance between size and accuracy);
-
-- parallel training (multiple processes) to do (weighted) majority vote on classification and regression tasks;
 
 - fully connected and locally connected networks;
 
@@ -29,6 +23,8 @@ TODO (in order of importance to me):
   - robusteness of the elite by checking it from time to time: tournament among the elements of the elite on the misclassified examples;
   - new crossover/mutation/selection methods.;
  
+- cythonize the code (! numpy is built on cython)
+
 - make it work natively with complex functions (mainly for signal processing);
 
 ## Create a network ##
@@ -60,9 +56,9 @@ dep.NetPlot(net);
 If you want to evolve a population of nets according to a genetic algorithm strategy, use the functions in netgenerator.py.
 The best strategy is to look at netgenerator.py last part, that gives you a sketch on how to use all the ga routines in the best way. Anyway there's a fast function to do that, with some parameters that are set by default (but can be changed in invokation phase), here's the syntax:
 ```python
-evolved_population, elite = evolve_population(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
+evolved_population, elite = evolvePopulation(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
 ```
 That can be fastly invoked for a population of 20 nets of the same topology introducted before, through 15 epochs, as:
 ```python
-evolved_population, elite = evolve_population(20, 15, 10, 5, "roulette", "one-point", "random");
+evolved_population, elite = evolvePopulation(20, 15, 10, 5, "roulette", "one-point", "random");
 ```
