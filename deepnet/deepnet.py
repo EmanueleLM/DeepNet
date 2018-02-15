@@ -45,7 +45,7 @@ derivatives_dict ={"L1": de.dy_L1, "L2": de.dy_L2, "CrossEntropy": de.dy_cross_e
 #   define a function in weights.py (imported let's say as we), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": we.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
-weights_dict = {"random": we.random_weights, "uniform":we.uniform_weights, "lecun": we.lecun_weights, "unitary": we.unitary_weights, "flashcard":we.flashcard_weights};
+weights_dict = {"random": we.random_weights, "uniform":we.uniform_weights, "lecun": we.lecun_weights, "unitary": we.unitary_weights, "flashcard":we.flashcard_weights, "normal": we.normal_weights};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
@@ -168,9 +168,10 @@ class DeepNet(object):
     # takes as input
     #   X, the input sample X (column vector)
     #   T, the expected output (also as column vector)
+    #   update, a boolean (set to True) that sets whether the parameters are updated or just returned
     # returns
     #   dW, dB: the weights/biases updates at this step
-    def backpropagation(self, X, T):  
+    def backpropagation(self, X, T, update=True):  
         dW = list(); # list of deltas that are used to calculate weights' update
         dB = list(); # array of deltas that are used to calculate biases' update
         y_hat = self.net_activation(X); # prediction of the network
@@ -196,14 +197,40 @@ class DeepNet(object):
         dW = dW[::-1]; # now the deltas are ordered as the net goes from left to right (fromt input(s) to ouput(s))      
         dB = dB[::-1];
         #print("Distance between dL/dv and dW.dB, using L2 norm:", self.check_gradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)    
+        if update is True:
+            if self.fully_connected == True:
+                self.weights_update(dW, dB); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
+            # backprop with a non fully connected topology
+            else:
+                for i in range(len(dW)):
+                    dW[i] = np.multiply(dW[i], self.mask[i]);
+                self.weights_update(dW, dB);
+        return dW, dB;     
+    
+    # function that performs several steps of backpropagation of the weights update from the output
+    #   (i.e. the loss error) to the varoius weights of the net
+    # we use the chain rule to generalize the concept of derivative of the loss wrt the weights
+    # takes as input
+    #   X, the input sample X composed by a number of samples (batch)
+    #   T, the expected output composed by a number of samples (batch)
+    #   batch_size, the size of each batch
+    # returns
+    #   dW, dB: the weights/biases updates at this step
+    def batch_backpropagation(self, X, T, batch_size):
+        delta_weights = list([np.zeros(w.shape) for w in self.weights]);
+        delta_bias = list([np.zeros(b.shape) for b in self.bias]);
+        for i in range(batch_size):
+            dW, dB = self.backpropagation(X[:,i], T[:,i], update=False);
+            for j in range(len(dW)):
+                delta_weights[j] += dW[j]/len(dW);
+                delta_bias[j] += dB[j]/len(dW);
         if self.fully_connected == True:
-            self.weights_update(dW, dB); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
+            self.weights_update(delta_weights, delta_bias); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
         # backprop with a non fully connected topology
         else:
             for i in range(len(dW)):
-                dW[i] = np.multiply(dW[i], self.mask[i]);
-            self.weights_update(dW, dB);
-        return dW, dB;        
+                dW[i] = np.multiply(delta_weights[i], self.mask[i]);
+            self.weights_update(delta_weights, delta_bias);
     
     # function that performs a step of the ADAGrad backpropagation of the weights update from the output
     #   (i.e. the loss error) to the varoius weights of the net
@@ -332,7 +359,7 @@ class DeepNet(object):
         return params
         
 """ Test part """
-verbose = True;
+verbose = False;
 if verbose:   
     # in order to create a net, just specify those few things
     #   net = DeepNet(d, np.array([[neurons, act]^(+)]), loss))

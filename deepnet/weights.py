@@ -37,3 +37,7 @@ def unitary_weights(weights):
 def flashcard_weights(weights, n_input, n_output):
     I = np.sqrt(6/(n_input+n_output));
     return np.random.uniform(-I, I, weights.shape);
+
+# gaussian initialization of the weights, given mean and variance
+def normal_weights(weights, mean, var):
+    return np.random.normal(mean, np.sqrt(np.abs(var)), weights.shape);
