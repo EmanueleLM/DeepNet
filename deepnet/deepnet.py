@@ -198,7 +198,7 @@ class DeepNet(object):
         dB = dB[::-1];
         #print("Distance between dL/dv and dW.dB, using L2 norm:", self.check_gradient(dW, dB, X, y_hat, T)); # check the gradient's update, the number in the output should be something very low (at least 10**-2)    
         if update is True:
-            if self.fully_connected == True:
+            if self.fully_connected is True:
                 self.weights_update(dW, dB); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
             # backprop with a non fully connected topology
             else:
@@ -220,11 +220,11 @@ class DeepNet(object):
         delta_weights = list([np.zeros(w.shape) for w in self.weights]);
         delta_bias = list([np.zeros(b.shape) for b in self.bias]);
         for i in range(batch_size):
-            dW, dB = self.backpropagation(X[:,i], T[:,i], update=False);
+            dW, dB = self.backpropagation(X[:,i].reshape(X[:,i].shape[0], 1), T[:,i].reshape(T[:,i].shape[0], 1), update=False);
             for j in range(len(dW)):
-                delta_weights[j] += dW[j]/len(dW);
-                delta_bias[j] += dB[j]/len(dW);
-        if self.fully_connected == True:
+                delta_weights[j] += dW[j]/batch_size;
+                delta_bias[j] += dB[j]/batch_size;                
+        if self.fully_connected is True:
             self.weights_update(delta_weights, delta_bias); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
         # backprop with a non fully connected topology
         else:
