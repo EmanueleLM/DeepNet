@@ -17,12 +17,13 @@ import numpy as np
 
 if __name__ == "__main__":
     # create the net and use a 50% connectivity (pre defined dropout)
-    net = dn.DeepNet(784, np.array([[100, "relu"], [20, "relu"], [10, "sigmoid"]]), "CrossEntropy", verbose=True); 
-    net.learning_rate = 1e-4; # set the learning rate     
+    net = dn.DeepNet(784, np.array([[10, "sigmoid"]]), "CrossEntropy", verbose=True); 
+    net.learning_rate = 1e-4; # set the learning rate  
+#    net.fully_connected = True;
     
     # initialize train, test, validation
     train_percentage = 90; # percentage of the dataset used for training: what's left is used for validation
-    train_digits = np.loadtxt('data/mnist/mnist_train.csv', delimiter=',', skiprows=30000); # import the train set
+    train_digits = np.loadtxt('data/mnist/mnist_train.csv', delimiter=',', skiprows=0); # import the train set
     test_digits = np.loadtxt('data/mnist/mnist_test.csv', delimiter=',', skiprows=0); # import the test set
     train_size = len(train_digits); # train size is the number of samples in the digits' dataset
     images, targets = drec.unison_shuffled_copies(train_digits[:,1:], train_digits[:,0].astype(int)); # shuffle together inputs and supervised outputs
@@ -56,13 +57,14 @@ if __name__ == "__main__":
     num_layers = len(net.weights);
     for e in range(epochs):
         print("\nEpoch ", e);
-                      
-        for n in range(X.shape[1]):
-            # rudimental dropout technique
-            net.mask = list();
-            for w in net.weights:
-                net.mask.append(np.random.choice([0.,1.], size=w.shape, p=[1.-.5, .5]));
-            net.backpropagation(X[:,n].reshape(784,1), Y[n].reshape(10,1));
+        
+        batch_size=1;              
+        for n in range(0, X.shape[1]-X.shape[1]%batch_size, batch_size):
+#            # rudimental dropout technique
+#            net.mask = list();
+#            for w in net.weights:
+#                net.mask.append(np.random.choice([0.,1.], size=w.shape, p=[1.-.5, .5]));
+#            net.batch_backpropagation(X[:,n:n+batch_size].reshape(784,batch_size), Y[n:n+batch_size].reshape(10,batch_size), batch_size);
             number_of_errors_validation = 0;
             
         for n in range(X_validation.shape[1]):
