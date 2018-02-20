@@ -222,9 +222,9 @@ class DeepNet(object):
         for i in range(batch_size):
             dW, dB = self.backpropagation(X[:,i].reshape(X[:,i].shape[0], 1), T[:,i].reshape(T[:,i].shape[0], 1), update=False);
             for j in range(len(dW)):
-                delta_weights[j] += dW[j];
-                delta_bias[j] += dB[j];                
-        if self.fully_connected is True:
+                delta_weights[j] += dW[j]/batch_size;
+                delta_bias[j] += dB[j]/batch_size;                
+        if self.fully_connected == True:
             self.weights_update(delta_weights, delta_bias); # perform weights update self.weights[i] = self.weights[i] - l_rate[i]*dY*dW[i]
         # backprop with a non fully connected topology
         else:
