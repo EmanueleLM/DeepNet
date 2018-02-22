@@ -31,14 +31,14 @@ activations_dict = {"relu": act.relu, "sigmoid": act.sigma, "tanh": act.tanh, "l
 #   define a function in loss.py (imported let's say as ls), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": ls.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
-loss_dict = {"L1": ls.loss_L1, "L2":ls.loss_L2, "CrossEntropy": ls.loss_cross_entropy};
+loss_dict = {"L1": ls.loss_L1, "L2":ls.loss_L2, "CrossEntropy": ls.loss_cross_entropy, "KL": ls.loss_KL};
 
 # the same method is employed for the choice of the derivatives function
 # Use this struct in this way: 
 #   define a function in derivatives.py (imported let's say as de), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": de.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)
-derivatives_dict ={"L1": de.dy_L1, "L2": de.dy_L2, "CrossEntropy": de.dy_cross_entropy, "relu": de.drelu, "leakyrelu": de.dleaky_relu,"sigmoid": de.dsigmoid, "tanh": de.dtanh, "exp": de.dexp, "linear": de.dlinear};
+derivatives_dict ={"L1": de.dy_L1, "L2": de.dy_L2, "CrossEntropy": de.dy_cross_entropy, "KL": de.dy_KL, "relu": de.drelu, "leakyrelu": de.dleaky_relu,"sigmoid": de.dsigmoid, "tanh": de.dtanh, "exp": de.dexp, "linear": de.dlinear};
 
 # the same method is employed for the choice of the weights' initialization
 # Use this struct in this way: 

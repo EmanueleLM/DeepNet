@@ -39,6 +39,18 @@ def dy_cross_entropy(y, t):
     y[y==0] = 1e-10;
     return (y-t)/(y*(1-y));
 
+# (partial) derivative of the Kullback-Leibler "measure"
+# y is the value predicted by our algorithm
+# t is the real value (we are in a supervised scenario)
+# we expect that the number of dimensions is the first dimension of both the input (so y.shape[1]=t.shape[1]=dimensions)
+# please note that KL can be written as entropy plus cross entropy of target/prediction
+def dy_KL(y, t):
+    y[y==1] = 1-1e-10;
+    y[y==0] = 1e-10;
+    entropy = 1+np.log2(y);
+    cross_entropy = (y-t)/(y*(1-y));
+    return entropy + cross_entropy;
+
 # (partial) derivative of sigmoid function wrt variable z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dsigmoid(z):
