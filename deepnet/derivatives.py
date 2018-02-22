@@ -49,7 +49,7 @@ def dy_KL(y, t):
     y[y==0] = 1e-10;
     entropy = 1+np.log2(y);
     cross_entropy = (y-t)/(y*(1-y));
-    return entropy + cross_entropy;
+    return cross_entropy - entropy;
 
 # (partial) derivative of sigmoid function wrt variable z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step

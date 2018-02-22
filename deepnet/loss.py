@@ -38,4 +38,4 @@ def loss_KL(y, t):
     y[y==0] = 1e-10;
     entropy = y*np.log2(y);
     cross_entropy = -t*np.log2(y)-(1-t)*np.log2(1-y);
-    return entropy + cross_entropy;
+    return cross_entropy - entropy;
