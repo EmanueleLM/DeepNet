@@ -45,7 +45,7 @@ derivatives_dict ={"L1": de.dy_L1, "L2": de.dy_L2, "CrossEntropy": de.dy_cross_e
 #   define a function in weights.py (imported let's say as we), say foo(input)
 #   put in the vocabulary the record "name_to_invoke_the_function": we.function_name
 #   call the function in this way activation_dictionary["name_to_invoke_the_function"](input)+
-weights_dict = {"random": we.random_weights, "uniform":we.uniform_weights, "lecun": we.lecun_weights, "unitary": we.unitary_weights, "flashcard":we.flashcard_weights, "normal": we.normal_weights};
+weights_dict = {"random": we.random_weights, "uniform":we.uniform_weights, "lecun": we.lecun_weights, "unitary": we.unitary_weights, "flashcard":we.flashcard_weights};
 
 # =============================================================================
 #  class that models a deep network with multiple layers and different acrivation functions
