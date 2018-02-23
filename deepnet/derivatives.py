@@ -35,8 +35,7 @@ def dy_L1(y, t):
     
 # derivative of y wrt the exit variable for the Cross Entropy loss function  
 def dy_cross_entropy(y, t):
-    y[y==1] = 1-1e-10;
-    y[y==0] = 1e-10;
+    np.clip(y, 1e-10, 1-1e-10, out=y);
     return (y-t)/(y*(1-y));
 
 # (partial) derivative of the Kullback-Leibler "measure"
@@ -45,11 +44,20 @@ def dy_cross_entropy(y, t):
 # we expect that the number of dimensions is the first dimension of both the input (so y.shape[1]=t.shape[1]=dimensions)
 # please note that KL can be written as entropy plus cross entropy of target/prediction
 def dy_KL(y, t):
-    y[y==1] = 1-1e-10;
-    y[y==0] = 1e-10;
+    np.clip(y, 1e-10, 1-1e-10, out=y);
     entropy = 1+np.log2(y);
     cross_entropy = (y-t)/(y*(1-y));
     return cross_entropy - entropy;
+
+# (partial) derivative of the function known as Variational Autoencoders Loss (VAE)
+# y is the value predicted by our algorithm
+# t is the real value (we are in a supervised scenario)
+# we expect that the number of dimensions is the first dimension of both the input (so y.shape[1]=t.shape[1]=dimensions)
+# please note that VAE loss can be written as entropy of prediction minus kl of target/prediction
+def dy_VAE(y, t):
+    kl = dy_KL(y, t);
+    np.clip(y, 1e-10, 1., out=y);
+    return 1/y - kl;
 
 # (partial) derivative of sigmoid function wrt variable z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
@@ -60,15 +68,15 @@ def dsigmoid(z):
 # (partial) derivative of ReLu function wrt variable z
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def drelu(z):
-    z[z<=0] = 0.;
-    z[z>0] = 1.;
+    np.clip(z, 0., None, out=z);
+    z[z!=0] = 1.;
     return z;
 
-# (partial) derivative of LeakyReLu function wrt variable z, where \epsilon is set to 0.01
+# (partial) derivative of LeakyReLu function wrt variable z, where \epsilon is set to 1e-4
 # the partial is not in the common math sense, but in the sense that the "residual" dZ is not calculated at this step
 def dleaky_relu(z):
-    z[z<=0] = 0.1;
-    z[z>0] = 1.;
+    np.clip(z, 1e-4, None, out=z);
+    z[z!=0] = 1.;
     return z;
 
 # (partial) derivative of tanh function wrt variable z

@@ -16,14 +16,14 @@ def sigma(weights, X, bias):
     
 # ReLU activation function
 def relu(weights, X, bias):
-    z = np.dot(weights.T,X) + bias; # activate (linearly) the input    
-    z[z<=0] = 0;
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input   
+    np.clip(z, 0., None, out=z);
     return z;
 
-# LeakyReLU activation function, where \epsilon is set to 0.01
+# LeakyReLU activation function, where \epsilon is set to 1e-4
 def leaky_relu(weights, X, bias):
-    z = np.dot(weights.T,X) + bias; # activate (linearly) the input    
-    z[z<=0] = 1e-4;
+    z = np.dot(weights.T,X) + bias; # activate (linearly) the input 
+    np.clip(z, 1e-4, None, out=z);
     return z;
 
 # tanh activation function
