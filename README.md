@@ -1,6 +1,11 @@
 ## DeepNet
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
+# Coming Soon
+- genetic-ng module (ok I will call it genetic and substitute the old one).
+  - this one will be a full working module with several operators and operations that are fast and reliable;
+  - will be used to test a fresh new genetic method based on KL divergence among each layer.
+
 ## Things implemented so far, 30/01/2018: ##
 
 - customizable deep net (specify with **one** line of code whole the net, from neurons to activations to loss);
