@@ -4,7 +4,8 @@ Created on Sat Sep 23 20:02:59 2017
 
 @author: Emanuele
 
-Activation functions, versions with single sample, with full dataset, both SIMD and batch.
+Activation functions, versions with single sample, with full dataset, 
+    both SIMD and batch.
 """
 
 import numpy as np
