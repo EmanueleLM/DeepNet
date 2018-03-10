@@ -6,9 +6,11 @@ Created on Thu Oct 12 09:13:31 2017
 """
 import numpy as np
 import matplotlib.pyplot as plt 
-from sklearn.datasets import load_digits # import the digit dataset, a dataset of digits in a greyscale matrix each, 8x8
+# import the digit dataset, a dataset of digits in a greyscale matrix each, 8x8
+from sklearn.datasets import load_digits 
 
-# function that shuffles together two arrays (whose len is equal and it's the first element of the array in np.shape)
+# function that shuffles together two arrays (whose len is equal and it's the 
+#   first element of the array in np.shape)
 # takes as input 
 #   a,b the two arrays
 # returns
@@ -33,7 +35,8 @@ def plot_digit(m):
 # returns
 # thetrain adn test datasets, splitted accoridngly
 def data_split(data, train_percentage):
-    last_index_train = int(len(data)*(train_percentage/100)); # calculate the number of train samples wrt the number of data samples
+    # calculate the number of train samples wrt the number of data samples
+    last_index_train = int(len(data)*(train_percentage/100)); 
     return data[:last_index_train], data[last_index_train:];
 
 # function that transorms the labels'dataset into a matrix of binary vector
@@ -51,7 +54,8 @@ def data_split(data, train_percentage):
 # returns
 #   the binarized dataset
 def binarization(Y):
-    res = np.array([[0 for i in range(10)] for j in range(len(Y))]); # 10 possible labels means vectors of size 10 each
+    # 10 possible labels means vectors of size 10 each
+    res = np.array([[0 for i in range(10)] for j in range(len(Y))]); 
     for n in range(len(Y)):
         res[n][Y[n]] = 1;
     return res;
@@ -67,21 +71,5 @@ def vectorize(X):
 def normalize_data(X):
     #X = X.reshape(X.shape[0], X.shape[1], 1);
     for i in range(X.shape[0]):
-        X[:,i] = (X[:,i]-np.mean(X[:,i]))/np.std(X[:,i]); # normalize both input and output
+        X[:,i] = (X[:,i]-np.mean(X[:,i]))/np.std(X[:,i]); # normalize input and output
     return X;
-
-
-""" classify some numbers! """
-"""
-train_percentage = 70; # percentage of the dataset used for training
-
-digits = load_digits(); # import the dataset
-
-images, targets = unison_shuffled_copies(digits.images, digits.target); # shuffle together inputs and supervised outputs
-
-train, test = data_split(images, train_percentage);# split train adn test
-train_Y, test_Y = data_split(targets, train_percentage); # split train and test labels
-
-train_Y = binarization(train_Y); # binarize both the train and test labels
-test_Y = binarization(test_Y); # ..
-"""
