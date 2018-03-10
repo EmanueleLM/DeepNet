@@ -4,25 +4,34 @@ Created on Thu Dec  7 15:13:02 2017
 
 @author: Emanuele
 
-This code is a modified version of visualise-neural-network at https://github.com/miloharper/visualise-neural-network
-I just changed a bit the code in such a way that it is possible to visualize non-fully connected topologies.
+This code is a modified version of visualise-neural-network at 
+https://github.com/miloharper/visualise-neural-network
+I just changed a bit the code in such a way that it is possible to visualize 
+non-fully connected topologies.
 
-=====================================================================================================================
+===============================================================================
 
 The MIT License (MIT)
 
 Copyright (c) 2015 Milo Spencer-Harper
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
- files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
- modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+ this software and associated documentation
+ files (the "Software"), to deal in the Software without restriction, including 
+ without limitation the rights to use, copy,
+ modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+ Software, and to permit persons to whom the Software
  is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
 IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
@@ -125,12 +134,3 @@ class NetPlot():
             network.add_layer(net.weights[i].shape[1]);
         network.draw(None if net.fully_connected is True else net.mask);
         print(net); # print informations on the net itself
-        
-""" Test """
-verbose = False;
-if verbose:
-    import deepnet as dn # this one conflicts with deepnet module so make all this stuff 'un'-verbose before launching any other module
-    net = dn.DeepNet(8, np.array([[10, "tanh"], [7, "leakyrelu"], [12, "tanh"]]), "L2", True); # create the net
-    # the first layer is divided in two regions connected, respectively, to each half of the second layer, while the second layer is fully connected to the output
-    net.net_topology('layer(1): 1:3|1:2, 4:5|3, 6|4:9, 7:8|10 layer(2): :3|:7, 4:10|7 layer(3): :7|:12'); 
-    NetPlot(net);
