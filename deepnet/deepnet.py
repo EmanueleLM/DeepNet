@@ -110,19 +110,70 @@ class DeepNet(object):
         self.weights_old = cp.deepcopy(self.weights);
         self.bias_old = cp.deepcopy(self.bias);
         
-        # non fully connected case and creation of the mask of binary weights 
-        #   with a given percentage of connections turned off
+        # creation of the mask of binary weights 
+        #   with a given percentage of connections turned off 
+        #   in case it is fully_connected, just 'ones' matrices
         if fully_connected is False:
             self.fully_connected = False;
             
             for w in self.weights:
                 perc = [1.-connection_percentage, connection_percentage];
                 self.mask.append(np.random.choice([0.,1.], size=w.shape, p=perc));
+        else:
+            for w in self.weights:
+                self.mask.append(np.ones(w.shape));
                 
         # prints out a short description of the net
         if verbose:
             print("\nNetwork created succesfully!");
             self.explain_net();
+            
+    # add a block to the net
+    # use this method before invoking __init__ with an input and an output
+    # to build a neural net, or just to add a layer
+    def add_block(self, output_size, activation, fully_connected=True, connection_percentage=.5):
+        
+        # create the new layer
+        self.weights.append(np.zeros((self.weights[-1].shape[1], output_size)));
+        self.bias.append(np.zeros((output_size, 1))); 
+        self.activations = np.append(self.activations, activation);
+        
+        # append the old weights (ada and momentum use them)
+        self.weights_old.append(cp.deepcopy(self.weights[-1]));
+        self.bias_old.append(cp.deepcopy(self.bias[-1]));
+        
+        # creation of the mask of binary weights with a given percentage of 
+        #   connections turned off: if fully_connected, just 'ones' matrices
+        w = self.weights[-1];
+        if fully_connected is False:
+            self.fully_connected = False;            
+            perc = [1.-connection_percentage, connection_percentage];
+            self.mask.append(np.random.choice([0.,1.], size=w.shape, p=perc));
+        else:
+            self.mask.append(np.ones(w.shape)); 
+            
+    # remove a block from the net
+    # layer is the i-th layer you want to remove
+    def remove_block(self, layer):
+        
+        # last layer shortcut as -1-th element
+        layer = len(self.weights)-1 if layer==-1 else layer; 
+        
+        # if there's at least a layer to remove
+        if len(self.weights)>1:
+            self.weights.pop(layer);
+            self.bias.pop(layer);
+            self.activations = np.delete(self.activations, layer);
+            
+            # remove mask: check whether the net becomes fully connected, in 
+            #   that case set it not to waste computation time with masks
+            self.mask.pop(layer);
+            if self.fully_connected is False:
+                
+                for m in self.mask:
+                    if np.sum(m).astype(int) != np.multiply(*m.shape).astype(int):
+                        break;
+                    self.fully_connected = True;  
 
     # function that explains the net: this means that it describes the network
     # in terms of input, layers and activation functions
@@ -502,11 +553,17 @@ if verbose:
     #    we want as loss the L1 (lasso)
     #    we just specify:
     #    ex_net = DeepNet(10, np.array([[15, "relu"], [45, "relu"], [35, "relu"], [5, "sigmoid"]]), "L1");
-    net = DeepNet(1, np.array([[100, "relu"], [75, "relu"], [35, "relu"], [10, "sigmoid"]]), "CrossEntropy", verbose=True);
+    net = DeepNet(10, np.array([[100, "relu"], [75, "relu"], [35, "relu"], [10, "sigmoid"]]), "CrossEntropy", verbose=True);
+    # alternative method adds blocks: you just need to create a net with a set of
+    #   weights, then you can add at your pleasure, every one with its own connectivity
+    # net = DeepNet(1, np.array([[100, "relu"]]), "CrossEntropy");
+    # net.add_block(75, "relu");
+    # net.add_block(35, "relu");
+    # net.add_block(10, "sigmoid");
     # the first layer is divided in two regions connected, respectively, 
     #   to each half of the second layer, while the second layer is fully connected
     #   to the output
-    net.net_topology('layer(1): :32|:5, 33:|6: layer(2): :|: layer(3): :|: layer(4): :|:');
+    net.net_topology('layer(1): :25|:5, 33:|6: layer(2): :|: layer(3): :|: layer(4): :|:');
     # set the learning rate
     net.learning_rate = 5e-4;    
     # initialize the weights
