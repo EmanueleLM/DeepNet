@@ -53,6 +53,24 @@ We want to specify the topology of the net, in such a way that the input is conn
 net.net_topology('layer(1): :5|:20, 6|21, 7|22, 8:|23: layer(2): :|: layer(3): :|:'); 
 ```
 
+Alternatively we can build up a network by first specifying the first layer (at least one) as stated in the previous snippet of code, then add the others, each one with its specific topology (fully or non fully connected).
+```python
+net = DeepNet(10, np.array([[35, "sigmoid"]), "L2");
+# add a block non-fully connected
+net.add_block(40, "exp", fully_connected=False, connection_percentage=.75);
+net.add_block(5, "leakyrelu");
+```
+
+And we can remove also blocks from our net, by simply using this function:
+```python
+# remove the last one
+net.remove_block(-1);
+# remove the first layer of weights
+net.remove(0); 
+# remove the block after the input
+net.remove_block(1); 
+```
+
 While deepplot.netplot provides a (simple and rudimental) way to visualize the net:
 ```python
 import deepplot.netplot as dep
