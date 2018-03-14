@@ -1,0 +1,1 @@
+il cambiamento brsuco nei parametri è dovuto ad una modifica accidentale del batch size, non farci caso
