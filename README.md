@@ -4,7 +4,7 @@
 # Coming Soon
 - genetic-ng module (ok I will call it genetic and substitute the old one).
   - this one will be a full working module with several operators and operations that are fast and reliable;
-  - will be used to test a fresh new genetic method based on KL divergence among each layer.
+  - will be used to test a fresh new genetic method based on KC/LC complexity among each layer.
 
 ## Things implemented so far, 30/01/2018: ##
 
