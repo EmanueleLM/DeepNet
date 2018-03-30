@@ -4,7 +4,7 @@ Created on Thu Mar 22 23:18:05 2018
 
 @author: Emanuele
 
-Net generato module
+Net generator module
 """
 
 import numpy as np
@@ -121,7 +121,7 @@ def evolve(population, selection, crossover, mutation, p_crossover=.5, p_mutatio
         
         # select two nets and apply crossover
         id1, id2 = dict_selection[selection](population, ordered=True);
-        p1, p2 = dict_crossover[crossover](population[id1][0], population[id2][0], p_crossover); 
+        p1, p2 = dict_crossover[crossover](population[id1], population[id2], p_crossover); 
         
         # apply mutation
         dict_mutations[mutation](p1, p_mutation);
