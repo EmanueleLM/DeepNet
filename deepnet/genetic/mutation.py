@@ -11,7 +11,7 @@ import deepnet as dn
 import numpy as np
 
 # increment/decrement of the percentage of neurons in a given layer, 
-#   if mutation happens (e.g. .05 menas +5% or -5%)
+#   if mutation happens (e.g. .05 means +5% or -5%)
 DELTA_CONNECTIONS = .05; 
 
 # classic random mutation that happens with a low probability:
@@ -109,6 +109,26 @@ def random_mutation(net, p):
                 # if we add a connection to an exisitng one, we get a 2, 
                 #   so we get back to 1 in the mask
                 m[m<0] = 0; 
-                m[m>0] = 1; 
-                
+                m[m>0] = 1;
+# TODO:              
+# random mutation with strings that represents each net:
+#    increment the number of neuron in a layer, for each layer;
+#    change the activation function;
+#    increment/decrement learning rate by a quantity that has the same magnitude 
+#    of the learning rate of the net other things to be defined (change the dropout
+#    rate, change the connections topology etc.).
+# takes as input
+#   net, the neural net coming from the specification in DeepNet module
+#   p, the mutation's probability
+# please note that if a change in the number of neurons for a given layer happens,
+#    we change also the number of
+#  weights and the associated matrix: we assume that the (possibly new) weights 
+#   are distributed according to a unimodal 
+#  distribution and we initialize them according to that, estimating the parameters
+#    from the weights that already exist
+# if we diminish the number of weights, we normalize the resulting ones according 
+#   to mean and variance of the weights
+#  of the original weights
+def random_mutation_string(net, p):
+     pass;           
             

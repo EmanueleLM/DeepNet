@@ -152,6 +152,24 @@ def one_point_crossover(net1, net2, p):
     
     return net1, net2;
 
+# TODO:
+# one point crossover with strings that represents each net: takes the two nets
+#  and divide them in two parts each first part is attached to the second part 
+#  of the other net and we obtain two new nets
+# obviously we need to modify (in general) the number of connections of the two
+#    new nets in the point
+# where the original one are splitted
+# takes as input
+#   net1, the first net (DeepNet object)
+#   net2, the second net (DeepNet object)
+#   p, the probability that the crossover happens (this one is usually much 
+#       bigger than the mutation  probability, e.g. 50%)
+# returns
+#   net1, net2, the modified nets after the crossover
+def one_point_crossover_string(net1, net2, p):
+    pass;
+
+# TODO:
 # uniform crossover: takes two nets and mix them uniformely (i.e. each layer of
 #    net1 has 50% of probability to become part of net2, and viceversa).
 # takes as input
