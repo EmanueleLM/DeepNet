@@ -2,9 +2,11 @@
 # Basic deep network to evaulate some optimizations techniques in non-shallow architectures
 
 # Coming Soon
-- genetic-ng module (ok I will call it genetic and substitute the old one).
-  - this one will be a full working module with several operators and operations that are fast and reliable;
-  - will be used to test a fresh new genetic method based on KC/LC complexity among each layer.
+genetic-ng module (ok I will call it 'genetic' and substitute the old one).
+- this one will be a full working module with several operators and operations that are fast and reliable;
+  - possibility to use the full net object or just a string to do mutation and crossover;
+  - Darwin vs. Lamarck evolutions' models (should we transmit something the net has learnt during its life?). 
+- will be used to test a fresh new genetic method based on KC/LC complexity among each layer.
 
 ## Things implemented so far, 30/01/2018: ##
 
@@ -79,11 +81,9 @@ dep.NetPlot(net);
 ![GitHub Logo](/deepnet/deepplot/images/plot_example.png)
 
 If you want to evolve a population of nets according to a genetic algorithm strategy, use the functions in netgenerator.py.
-The best strategy is to look at netgenerator.py last part, that gives you a sketch on how to use all the ga routines in the best way. Anyway there's a fast function to do that, with some parameters that are set by default (but can be changed in invokation phase), here's the syntax:
+Here's the syntax you should use just for the evolution part: soon I will a more complex example.
 ```python
-evolved_population, elite = evolve_population(population_size, epochs, input_size, output_size, selection_type, crossover_type, mutation_type, fully_connected=False, connection_percentage=.5, elite_size=3, crossover_probability=.8, mutation_probability=.05);
-```
-That can be fastly invoked for a population of 20 nets of the same topology introducted before, through 15 epochs, as:
-```python
-evolved_population, elite = evolve_population(20, 15, 10, 5, "roulette", "one-point", "random");
+# let's suppose we have 4 nets, net1, net2, net3, net4
+nets = [net1, net2, net3, net4];
+evolve(nets, selection="rank", crossover="one-point", mutation="random");
 ```
