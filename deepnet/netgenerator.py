@@ -16,22 +16,26 @@ import genetic.selection as sel
 import genetic.elitism as el
 
 # dictionary for the crossover methods
-dict_crossover = {"one-point": cr.one_point_crossover}; 
+dict_crossover = {"one-point": cr.one_point_crossover, 
+                  "one-point-string": cr.one_point_crossover_string}; 
 # dictionary for the mutations methods
-dict_mutations = {"random": mu.random_mutation}; 
+dict_mutations = {"random": mu.random_mutation, 
+                  "random-string": mu.random_mutation_string}; 
 # dictionary for the selection methods
-dict_selection = {"rank": sel.rank_selection, "roulette": sel.roulette_selection}; 
+dict_selection = {"rank": sel.rank_selection, 
+                  "roulette": sel.roulette_selection}; 
 
 # dictionary of fitness functions
-dict_fintess = {"accuracy": fit.classification_accuracy, "kcomplexity": fit.simplicity };
+dict_fintess = {"accuracy": fit.classification_accuracy, 
+                "kcomplexity": fit.simplicity };
 
 # specify the min/max number of layers each layer can have
-MAX_NUM_LAYERS = 4; 
+MAX_NUM_LAYERS = 6; 
 MIN_NUM_LAYERS = 2; 
 
 # specify the min/max number of neurons each layer can have
-MAX_NUM_NEURONS = 10; 
-MIN_NUM_NEURONS = 5; 
+MAX_NUM_NEURONS = 20; 
+MIN_NUM_NEURONS = 10; 
 
 # generate a population of random neural networks
 # takes as input:
@@ -72,10 +76,12 @@ def rand_population(i_size, o_size, pop_size, connection_percentage=1.):
         loss = list(dn.loss_dict.keys())[np.random.randint(0, loss_dict_size)];
         
         if connection_percentage == 1.:
-            params = tuple(verbose=True, fully_connected=True, connection_percentage=1.);
+            # tuple's form (verbose=, fully_connected=, connection_percentage=)
+            params = (True, True, 1.);
             
         else:
-            params = tuple(verbose=True, fully_connected=False, connection_percentage=connection_percentage);
+            # tuple's form (verbose=, fully_connected=, connection_percentage=)
+            params = (True, False, connection_percentage);
         
         # create the net and append it to the population
         net = dn.DeepNet(i_size, layer.reshape(n_layers, 2), loss, *params);
@@ -104,8 +110,9 @@ def eval_fitness(nets, fitness, args=None):
 
 # evolve a population of nets
 #   this is less 'blobby' than the previous version, still a mess: use this 
-#   function just in case you want something that works fast, otherwise please
-#   read the documentation on how to setup an evolving envoirnment
+#    function just in case you want something that works fast, otherwise please
+#    read the documentation and check the /test folder on how to setup an evolving 
+#    envoirnment
 # takes as input:
 #   population_size, the number of nets to evolve
 #   selection, a string that indicates the selection method used, taken by dict_selection
