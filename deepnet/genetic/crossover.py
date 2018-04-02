@@ -9,7 +9,6 @@ This module implements various crossover methods
 
 import numpy as np
 import copy as cp
-from itertools import chain
 
 # classical one point crossover: takes the two nets and divide them in two parts
 # each first part is attached to the second part of the other net and we obtain 
@@ -177,7 +176,12 @@ def one_point_crossover_string(net1, net2, p):
     # rebuild the nets' representations   
     enc1 = input_size[0] + sep + net_layers[0] + sep + net_loss[0] + sep +net_l_rate[0];
     enc2 = input_size[1] + sep + net_layers[1] + sep + net_loss[1] + sep +net_l_rate[1];
-
+    
+    
+    # compress the string by eliminating blank spaces
+    enc1 = enc1.replace(' ', '');
+    enc2 = enc2.replace(' ', '');
+    
     return [enc1, enc2];       
 
 # TODO:

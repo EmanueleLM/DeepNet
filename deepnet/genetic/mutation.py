@@ -91,7 +91,7 @@ def random_mutation(net, p):
                     # remove the first new_neurons columns from the layer
                     net.mask[l] = np.delete(net.mask[l], range(np.abs(new_neurons)), axis=1); 
                     # remove the first new_neurons rows from the next leaye
-                    net.mask[l+1] = np.delete(net.mask[l+1], range(np.abs(new_neurons)), axis=0);
+                    net.mask[l+1] = np.delete(net.mask[l+1], range(np.abs(new_neurons)), axis=0); 
        
         # change the loss of the net
         if np.random.rand() <= p:
@@ -130,10 +130,10 @@ def random_mutation_string(net, p):
     dict_act_size = len(dn.activations_dict); 
     dict_loss_size = len(dn.loss_dict);
     
-    muted_net = '';
+    new_net = '';
     sep = ',';
     
-    # get each element of the net by splitting the string that represent it
+    # get each element of the net by splitting the string that represents it
     #  in its components
     el = net.split('[');
     input_size = int(el[0].replace(',', ''));
@@ -148,7 +148,7 @@ def random_mutation_string(net, p):
     net_l_rate = el[1].replace(',', '');
     
     # add the input
-    muted_net += str(input_size) + sep + '[';
+    new_net += str(input_size) + sep + '[';
     
     # mutate each parameter with a low probability
     for i in range(0,len(net_layers)-1,2):
@@ -163,7 +163,7 @@ def random_mutation_string(net, p):
             net_layers[i] += (1 if (np.random.rand()<=.5 or net_layers[i]<=2) else -1)*max(1, int(DELTA_CONNECTIONS*net_layers[i])); 
         
         init_comma = ('' if i==0 else ',');
-        muted_net += init_comma + str(net_layers[i]) + sep;
+        new_net += init_comma + str(net_layers[i]) + sep;
                   
         # change the activation function of the layer
         if np.random.rand() <= p:
@@ -172,15 +172,15 @@ def random_mutation_string(net, p):
             rand_activation = np.random.randint(0, dict_act_size-1);
             net_layers[i+1] = list(dn.activations_dict.keys())[rand_activation];
 
-        muted_net += net_layers[i+1];
+        new_net += net_layers[i+1];
             
-    muted_net += ']';
+    new_net += ']';
         
     # change the loss of the net
     if np.random.rand() <= p:
         net_loss = list(dn.loss_dict.keys())[np.random.randint(0, dict_loss_size-1)]; 
     
-    muted_net += sep + net_loss;
+    new_net += sep + net_loss;
             
     # modify the learning rate of the net
     if np.random.rand() <= p:
@@ -188,6 +188,9 @@ def random_mutation_string(net, p):
         # half or double the learning rate with a probability of 0.5 each
         net_l_rate += ((-1)**np.random.randint(0,2))*(10**np.log10(net_l_rate))*(.5); 
     
-    muted_net += sep + str(net_l_rate);
+    new_net += sep + str(net_l_rate);
+    
+    # compress the string by eliminating usless blank spaces
+    new_net = new_net.replace(' ', '');
             
-    return muted_net;
+    return new_net;
