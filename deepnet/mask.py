@@ -136,12 +136,18 @@ class Mask(object):
 
 """ Test """
 verbose = False;
+
 if verbose:
+    
     example_str = 'layer(1): 1|1, 2|2:3, 3|4:5 layer(2): :|:';
+    
     import deepnet as dn
+    
     net = dn.DeepNet(3, np.array([[5, "tanh"], [6, "linear"]]), "L2", True); 
     mask = Mask(net, example_str);
     net.fully_connected = False;
     net.set_mask(mask.weights);
+    
     import deepplot.netplot as nep
+    
     nep.NetPlot(net);

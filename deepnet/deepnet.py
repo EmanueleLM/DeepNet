@@ -324,9 +324,9 @@ class DeepNet(object):
         if update is True:
             if self.fully_connected is True:
                 self.weights_update(dW, dB); # perform weights update 
-            # backprop with a non fully connected topology
-            else:
                 
+            # backprop with a non fully connected topology
+            else:                
                 for i in range(len(dW)):                    
                     dW[i] = np.multiply(dW[i], self.mask[i]);
                 self.weights_update(dW, dB);
