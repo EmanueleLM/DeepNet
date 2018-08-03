@@ -33,10 +33,12 @@ def rank_selection(population, ordered=True):
     
     # if we have a non-ordered population (by fitness), order it
     if ordered is False: 
+        
         population = sort_by_fitness(population); 
     
     # draw two elements from the population    
     p = np.random.rand();
+    
     for i in range(len(population)):
         
         if p >= 2**(-i-1):            
@@ -60,9 +62,13 @@ def rank_selection(population, ordered=True):
     #   (better wrt fitness)
     # may handle this situation differently, this solution is highly elitarian
     if id1 == id2:
+        
         if id1 == 0:
+            
             id2 = 1;
+            
         else:
+            
             id2 = id1-1;
             
     return (id1,id2);
@@ -83,6 +89,7 @@ def roulette_selection(population, ordered=True):
     
     # if we have a non-ordered population (by fitness), order it
     if ordered is False: 
+        
         population = sort_by_fitness(population); 
         
     total_fitness = np.sum(p[1] for p in population); 
@@ -107,10 +114,15 @@ def roulette_selection(population, ordered=True):
     #   (better wrt fitness)
     # may handle this situation differently, this solution is highly elitarian
     if id1 == id2:
+        
         if id1 == 0:
+            
             id2 = 1;
+            
         else:
+            
             id2 = id1-1;
+            
     return (id1,id2);
        
 # utility that orders the population of <net, fitness> in descending/ascendig order

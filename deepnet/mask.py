@@ -54,7 +54,9 @@ class Mask(object):
         self.bias = list();
         
         for w in net.weights:
+            
             self.weights.append(np.zeros(w.shape));
+            
         self.create_mask(net_topology);
         
         for i in range(len(self.layers)):
@@ -83,8 +85,10 @@ class Mask(object):
         # parse the net_topology given by the input
         # remove all withespaces
         self.layers = re.sub(r"\s+", "", net_topology, flags=re.UNICODE); 
+        
         # eliminate the header of each layer specification
         self.layers = re.split('layer\(\d+\):', self.layers)[1:]; 
+        
         # return the sublists fo each layer descriptor
         self.layers = list([re.split(',', el) for el in self.layers]); 
         
@@ -111,43 +115,55 @@ class Mask(object):
         
         # case 'a:b' (all the neruons from a-th to b-th, included)
         if re.match('(\d+):(\d+)', chunk): 
+            
             r1, r2 = re.match('(\d+):(\d+)', chunk).group(1,2);
+            
         # case 'a:' (all the neurons from a-th to the end of the layer, included)
         elif re.match('(\d+):', chunk):
+            
             r1 = re.match('(\d+)', chunk).group(1);
             r2 = layer_shape;
+            
         # case ':b' (all the neurons from the first to the b-th, included)
         elif re.match(':(\d+)', chunk):
+            
             r2 = re.match(':(\d+)', chunk).group(1);
             r1 = 1;
+            
         # case 'a' (just the neuron a-th)
         elif re.match('(\d+)', chunk):
             r2 = re.match('(\d+)', chunk).group(1);
             r1 = int(r2);
+            
         # case ':' (all the neurons in the layer)
         elif re.match(':', chunk):
             r1 = 1;
             r2 = layer_shape;
+            
         else:
+            
             print('error while parsing string', chunk);
             return;
             
-        return '['+str(r1) + ',' + str(r2) +']';         
+        return '['+str(r1) + ',' + str(r2) +']';       
+    
 
-""" Test """
+""" 
+    In place test: take this code as a small demonstration of the code 
+"""
+
+import deepnet as dn
+import deepplot.netplot as nep
+
 verbose = False;
 
 if verbose:
     
     example_str = 'layer(1): 1|1, 2|2:3, 3|4:5 layer(2): :|:';
     
-    import deepnet as dn
-    
     net = dn.DeepNet(3, np.array([[5, "tanh"], [6, "linear"]]), "L2", True); 
     mask = Mask(net, example_str);
     net.fully_connected = False;
     net.set_mask(mask.weights);
-    
-    import deepplot.netplot as nep
     
     nep.NetPlot(net);

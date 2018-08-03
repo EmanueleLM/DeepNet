@@ -18,9 +18,11 @@ import genetic.elitism as el
 # dictionary for the crossover methods
 dict_crossover = {"one-point": cr.one_point_crossover, 
                   "one-point-string": cr.one_point_crossover_string}; 
+                  
 # dictionary for the mutations methods
 dict_mutations = {"random": mu.random_mutation, 
-                  "random-string": mu.random_mutation_string}; 
+                  "random-string": mu.random_mutation_string};
+                  
 # dictionary for the selection methods
 dict_selection = {"rank": sel.rank_selection, 
                   "roulette": sel.roulette_selection}; 
@@ -54,6 +56,7 @@ def rand_population(i_size, o_size, pop_size, connection_percentage=1.):
     
     # size of activations' dictionary in deepnet module
     dict_act_size = len(dn.activations_dict);
+    
     # size of the losses' dictionary in deepnet module
     loss_dict_size = len(dn.loss_dict); 
     
@@ -63,7 +66,8 @@ def rand_population(i_size, o_size, pop_size, connection_percentage=1.):
         layer = np.array([]);
         
         # append a random layer
-        for i in range(n_layers-1):            
+        for i in range(n_layers-1): 
+            
             neurons = np.random.randint(MIN_NUM_NEURONS, MAX_NUM_NEURONS);
             activation = list(dn.activations_dict.keys())[np.random.randint(0, dict_act_size)];
             layer = np.append(layer, np.array([neurons, activation]));      
@@ -76,10 +80,12 @@ def rand_population(i_size, o_size, pop_size, connection_percentage=1.):
         loss = list(dn.loss_dict.keys())[np.random.randint(0, loss_dict_size)];
         
         if connection_percentage == 1.:
+            
             # tuple's form (verbose=, fully_connected=, connection_percentage=)
             params = (True, True, 1.);
             
         else:
+            
             # tuple's form (verbose=, fully_connected=, connection_percentage=)
             params = (True, False, connection_percentage);
         
@@ -102,8 +108,11 @@ def eval_fitness(nets, fitness, args=None):
     
     # <net, fitness> elements evaluation
     if args is None:
+        
         population = list([[n, dict_fintess[fitness](n)] for n in nets]); 
+        
     else:
+        
         population = list([[n, dict_fintess[fitness](n, *(args))] for n in nets]);
     
     return population;

@@ -27,9 +27,11 @@ from operator import itemgetter
 def elitism(population, elite_size, ordered=False):
     
     if ordered is False:        
+        
         population = sort_by_fitness(population);
         
-    if elite_size >= len(population):        
+    if elite_size >= len(population):   
+        
         return population, population;
     
     else:        
@@ -59,4 +61,5 @@ def steady_elite(elite):
 #        desc, boolean (that is considered False if not given) that means that 
 #           the resulting population is in descending order, ascending otherwise
 def sort_by_fitness(population, desc=False):
+    
     return sorted(population, key = itemgetter(1), reverse=False);

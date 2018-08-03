@@ -28,6 +28,7 @@ def one_point_crossover(net1, net2, p):
     
     # crossover fails
     if np.random.rand() > p:
+        
         return net1, net2; # return the initial nets
     
     # choose the cut point for both the networks, in this case we assume that 
@@ -96,11 +97,15 @@ def one_point_crossover(net1, net2, p):
         #   to the minimum size of the two nets)
         if net1.mask[cut_point[0]-1].shape[1] > net1.mask[cut_point[0]].shape[0]:
             
-            net1.mask[cut_point[0]-1] = np.delete(net1.mask[cut_point[0]-1], np.s_[0:net1.mask[cut_point[0]-1].shape[1]-net1.mask[cut_point[0]].shape[0]], axis=1);
+            net1.mask[cut_point[0]-1] = np.delete(net1.mask[cut_point[0]-1], 
+                     np.s_[0:net1.mask[cut_point[0]-1].shape[1]-net1.mask[cut_point[0]].shape[0]], 
+                     axis=1);
         
         elif net1.mask[cut_point[0]-1].shape[1] < net1.mask[cut_point[0]].shape[0]:
             
-            net1.mask[cut_point[0]] = np.delete(net1.mask[cut_point[0]], np.s_[0:net1.mask[cut_point[0]].shape[0]-net1.mask[cut_point[0]-1].shape[1]], axis=0);
+            net1.mask[cut_point[0]] = np.delete(net1.mask[cut_point[0]], 
+                     np.s_[0:net1.mask[cut_point[0]].shape[0]-net1.mask[cut_point[0]-1].shape[1]], 
+                     axis=0);
        
         else:
             
@@ -108,11 +113,15 @@ def one_point_crossover(net1, net2, p):
             
         if net2.mask[cut_point[1]-1].shape[1] > net2.mask[cut_point[1]].shape[0]:
             
-            net2.mask[cut_point[1]-1] = np.delete(net2.mask[cut_point[1]-1], np.s_[0:net2.mask[cut_point[1]-1].shape[1]-net2.mask[cut_point[1]].shape[0]], axis=1);
+            net2.mask[cut_point[1]-1] = np.delete(net2.mask[cut_point[1]-1],
+                     np.s_[0:net2.mask[cut_point[1]-1].shape[1]-net2.mask[cut_point[1]].shape[0]], 
+                     axis=1);
         
         elif net2.mask[cut_point[1]-1].shape[1] < net2.mask[cut_point[1]].shape[0]:
             
-            net2.mask[cut_point[1]] = np.delete(net2.mask[cut_point[1]], np.s_[0:net2.mask[cut_point[1]].shape[0]-net2.mask[cut_point[1]-1].shape[1]], axis=0);
+            net2.mask[cut_point[1]] = np.delete(net2.mask[cut_point[1]], 
+                     np.s_[0:net2.mask[cut_point[1]].shape[0]-net2.mask[cut_point[1]-1].shape[1]], 
+                     axis=0);
         
         else:
             
