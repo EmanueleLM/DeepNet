@@ -18,7 +18,7 @@ import deepnet as dn
 if __name__ == "__main__":
     
     # initialize the net 
-    net = dn.DeepNet(64, np.array([[35, "sigmoid"], [10, "sigmoid"]]), "CrossEntropy");
+    net = dn.DeepNet(64, np.array([[35, "leakyrelu"], [10, "leakyrelu"]]), "L2");
     net.learning_rate = 2e-3;        
 
     # uncomment the following two lines if you want to try a non-fully connected topology

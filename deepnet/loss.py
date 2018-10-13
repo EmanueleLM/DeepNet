@@ -14,7 +14,7 @@ import numpy as np
 # y is the value predicted by our algorithm
 # t is the real value (we are in a supervised scenario)
 def loss_L2(y, t):
-    return np.absolute(np.power((t-y), 2));
+    return np.power((t-y), 2);
 
 def loss_L1(y, t):
     return np.abs((t-y));

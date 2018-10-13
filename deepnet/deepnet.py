@@ -562,9 +562,9 @@ class DeepNet(object):
                 for j in range(self.weights[n].shape[1]):
                     
                     self.weights[n][i][j] += epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);                   
-                    partialL_plus = self.calculate_loss(self.net_activation(X) ,T)[j];
+                    partialL_plus = np.sum(self.calculate_loss(self.net_activation(X) ,T));
                     self.weights[n][i][j] -= 2*epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);
-                    partialL_minus = self.calculate_loss(self.net_activation(X) ,T)[j];
+                    partialL_minus = np.sum(self.calculate_loss(self.net_activation(X) ,T));
                     self.weights[n][i][j] += epsilon*(1. if self.fully_connected is True else self.mask[n][i][j]);
                     deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
         
@@ -574,9 +574,9 @@ class DeepNet(object):
             for j in range(len(self.bias[n])):
                 
                 self.bias[n][j] += epsilon;
-                partialL_plus = self.calculate_loss(self.net_activation(X) ,T)[j];
+                partialL_plus = np.sum(self.calculate_loss(self.net_activation(X) ,T));
                 self.bias[n][j] -= 2*epsilon;
-                partialL_minus = self.calculate_loss(self.net_activation(X) ,T)[j];
+                partialL_minus = np.sum(self.calculate_loss(self.net_activation(X) ,T));
                 self.bias[n][j] += epsilon;
                 deltaL = np.append(deltaL, (partialL_plus - partialL_minus)/(2*epsilon));
                 
