@@ -80,16 +80,16 @@ def dsigmoid(z):
 def drelu(z):
     np.clip(z, 0., None, out=z);
     z[z!=0] = 1.;
-    return z;
+    return z.astype(float);
 
 # (partial) derivative of LeakyReLu function wrt variable z,
 #   where \epsilon is set to 1e-4
 # the partial is not in the common math sense, but in the sense that the 
 #   "residual" dZ is not calculated at this step
 def dleaky_relu(z):
-    np.clip(z, 1e-4, None, out=z);
-    z[z!=0] = 1.;
-    return z;
+    z[z>=0] = 1;
+    z[z<0] = 1e-4;
+    return z.astype(float);
 
 # (partial) derivative of tanh function wrt variable z
 # the partial is not in the common math sense, but in the sense that the 
